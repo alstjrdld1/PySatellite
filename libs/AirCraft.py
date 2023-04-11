@@ -1,4 +1,5 @@
 import math
+from Constants import *
 
 class AirCraft:
     '''
@@ -41,9 +42,18 @@ class AirCraft:
         self.vz = 0
 
     def get_velocity(self) -> tuple:
+        r = self.get_altitude()
+        v = math.sqrt(G * M / r)
+
+        _theta = math.acos(self.x / r)
+        # _phi = 90
+        self.vx = v * math.cos(_theta)
+        self.vy = v * math.sin(_theta)
+        self.vz = 0
+
         return (self.vx, self.vy, self.vz)
 
-    def set_velocity(self,  velocity: tuple = (0,0)):
+    def set_velocity(self,  velocity: tuple = (0, 0, 0)):
         if(len(velocity) == 3):
             self.vx, self.vy, self.vz = velocity
         else:
@@ -52,7 +62,7 @@ class AirCraft:
     def get_position(self) -> tuple:
         return (self.x, self.y, self.z) 
     
-    def set_position(self, pos: tuple = (0, 0)):
+    def set_position(self, pos: tuple = (0, 0, 0)):
         if(len(pos) == 3):
             self.x, self.y, self.z = pos
         else:

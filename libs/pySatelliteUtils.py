@@ -51,33 +51,85 @@ def get_velocities_on_earth(locations: list) -> list:
     _locations = []
     theta_gap = 2 * math.pi / len(locations)  # For regular interval # 일정한 간격
 
-
     return _locations
 
+
+def get_relative_velocity_list(ac1: AirCraft, los: list):
+    rv_list = []
+
+    # for layer_idx, orbit in enumerate(los):  
+    #     for sat_idx, sat in enumerate(orbit):
+    #         # print(sat.get_position())
+    #         # print("LAYER : ", layer_idx, "SAT ", sat_idx, " ==> ", sat.get_position())
+    #         if(is_line_of_sight(ac1, sat)):
+    #             line_of_sight_list.append((layer_idx, sat_idx))
+
+    # return line_of_sight_list
+
+
+########################################################################################
+# ABOUT LINE OF SIGHT START
+########################################################################################
 def get_angle(x1, y1, x2, y2) -> float:
+    # print(f"x1 => {x1}, y1 => {y1}, x2 => {x2}, y2 => {y2}")
+    if((x1 == x2) and (y1 == y2)):
+        return 0    
+    
     r1 = math.sqrt((x1-EARTH_CENTER_LOC[0])**2 + (y1-EARTH_CENTER_LOC[1])**2)
     r2 = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
     r3 = math.sqrt((x2-EARTH_CENTER_LOC[0])**2 + (y2-EARTH_CENTER_LOC[1])**2)
 
-    cos_theta = (r1**2 + r2**2 - r3**2) / (2 * r1 * r2)
-    theta = math.acos(cos_theta)
+    cos_theta = (r1**2 + r2**2 - r3**2) / (2 * r1 * r2) 
+
+    if(cos_theta > 1):
+        cos_theta = 1
+    elif(cos_theta < -1):
+        cos_theta = -1
+    
+    try:
+        theta = math.acos(cos_theta)
+    except Exception as e:
+        print(e)
+        print(cos_theta)
+
     degree = theta * 180 / math.pi
     return degree
 
-
 def is_line_of_sight(ac1: AirCraft, ac2: AirCraft) -> bool:
-    _theta = math.asin( R / ac1.get_altitude())
-    _minimum_angle = _theta * 180 / PI
+    _alt = ac1.get_altitude()
+    _theta = math.asin( R / _alt)
+    _minimum_angle = (_theta * 180) / PI
     
     _x1, _y1 = ac1.get_position()[:2]
     _x2, _y2 = ac2.get_position()[:2]
 
     _angle = get_angle(_x1, _y1, _x2, _y2)
 
+    # print("MINIMUM ANGLE => ", _minimum_angle, "CURRENT ANGLE => ", _angle)
 
     return abs(_angle) > _minimum_angle
 
-## LOSS FUNCTIONS 
+def get_line_of_sight_list(ac1: AirCraft, orbits) -> list:
+    line_of_sight_list = []
+    for layer_idx, orbit in enumerate(orbits):  
+        for sat_idx, sat in enumerate(orbit):
+            # print(sat.get_position())
+            # print("LAYER : ", layer_idx, "SAT ", sat_idx, " ==> ", sat.get_position())
+            if(is_line_of_sight(ac1, sat)):
+                line_of_sight_list.append((layer_idx, sat_idx))
+
+    return line_of_sight_list
+
+########################################################################################
+# ABOUT LINE OF SIGHT END
+########################################################################################
+
+
+
+########################################################################################
+# ABOUT CHANNEL LOSS START
+########################################################################################
+
 def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0):
     _term1 = 20 * math.log10(distance)
     _term2 = 20 * math.log10(FREQUENCY * velocity * math.cos(propagation_velocity_angle) / C)
@@ -86,12 +138,24 @@ def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0)
 
     return fspl
 
-## CHANNEL CAPACITY : SHANNON - HARTELY
+########################################################################################
+# ABOUT CHANNEL LOSS END
+########################################################################################
+
+
+
+########################################################################################
+# ABOUT CHANNEL CAPACITY START
+########################################################################################
+
 def channel_capacity(transmit_power, distance, velocity, propagation_velocity_angle):
     _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
     _Pn = -174 + 10*math.log(BAND_WIDTH)
     _snr = _Pr-_Pn
     return BAND_WIDTH * math.log2(1+_snr)
 
+########################################################################################
+# ABOUT CHANNEL CAPACITY END
+########################################################################################
 
 
