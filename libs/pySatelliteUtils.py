@@ -1,5 +1,7 @@
 from AirCraft import * 
 from Constants import *
+
+from typing import List
 import math
 
 '''
@@ -17,23 +19,57 @@ import math
 def get_distance(ac1: AirCraft, ac2: AirCraft) -> float: # Output : distance  UNIT -> [m]
     ac1_pos = ac1.get_position()
     ac2_pos = ac2.get_position()
+    return math.sqrt((ac1_pos[0] - ac2_pos[0])**2 + (ac1_pos[1] - ac2_pos[1])**2 + (ac1_pos[2] - ac2_pos[2])**2)
 
-    if(len(ac1_pos) == 2 and len(ac2_pos) == 2):
-        return math.sqrt((ac1_pos[0] - ac2_pos[0])**2 + (ac1_pos[1] - ac2_pos[1])**2)
-    
-    elif(len(ac1_pos) == 3 and len(ac2_pos) == 3):
-        return math.sqrt((ac1_pos[0] - ac2_pos[0])**2 + (ac1_pos[1] - ac2_pos[1])**2 + (ac1_pos[2] - ac2_pos[2])**2)
-
-    else:
-        if(len(ac1_pos) != 2 or len(ac1_pos) != 3 or len(ac2_pos) != 2 or len(ac2_pos) != 3):
-            raise "Position length should be 2 or 3!!! ac1 size -> " + len(ac1_pos) + "ac2 size -> " + len(ac2_pos)
-
-        if(len(ac1_pos) != len(ac2_pos)):
-            raise "Length is Different! ac1 size -> " + len(ac1_pos) + "ac2 size -> " + len(ac2_pos)
-
+########################################################################################
+# ABOUT PROPAGATION START 
+########################################################################################
 def propagation_latency(src: AirCraft, dst: AirCraft) -> float: # Output : latency time  UNIT -> [s]
     return get_distance(src, dst) / C
 
+def get_propagation_angle(src_ac: AirCraft, dst_ac: AirCraft) -> float : # Output : Radian
+    src_pos = src_ac.get_position()
+    dst_pos = dst_ac.get_position()
+
+    _propagate_vector = (dst_pos[0] - src_pos[0], dst_pos[1] - src_pos[1], dst_pos[2] - src_pos[2])
+    # print(_propagate_vector)
+    _velocity_vector = src_ac.get_velocity()
+    # print(_velocity_vector)
+    
+    _dot_prod = sum([_propagate_vector[i] * _velocity_vector[i] for i in range(3)])
+    _mag1 = math.sqrt(sum([_propagate_vector[i]**2 for i in range(3)]))
+    _mag2 = math.sqrt(sum([_velocity_vector[i]**2 for i in range(3)]))
+
+    if(_mag1 == 0 or _mag2 == 0):
+        return 0
+    
+    _angle = math.acos(_dot_prod / (_mag1*_mag2))
+
+    return _angle
+
+def get_propagation_angle_list(dst_ac:AirCraft, sats:List[List[AirCraft]], los_list:List[List[bool]]) -> list:
+    _prop_angles = []    
+    for orbit_idx, orbit in enumerate(los_list):
+        _prop_row = []
+        for sat_idx, sat_is_visible in enumerate(orbit):
+            if(sat_is_visible):
+                _prop_angle = get_propagation_angle(sats[orbit_idx][sat_idx], dst_ac)
+                _prop_row.append(_prop_angle)
+            else:
+                _prop_row.append(0)
+        _prop_angles.append(_prop_row)
+    return _prop_angles
+########################################################################################
+# ABOUT PROPAGATION START 
+########################################################################################
+
+
+
+
+
+########################################################################################
+# ABOUT INITIALIZATION START
+########################################################################################
 def get_points_on_earth(d: float, num_points: int) -> list:
     _points = []
     _theta_gap = 2 * math.pi / num_points  # For regular interval # 일정한 간격
@@ -42,29 +78,46 @@ def get_points_on_earth(d: float, num_points: int) -> list:
         theta = i * _theta_gap
         x = d * math.cos(theta)
         y = d * math.sin(theta)
+        print("THEATA => ", theta, "X => ", x, "Y => ", y)
         _points.append((x, y))
 
     return _points
 
-def get_velocities_on_earth(locations: list) -> list:
+def get_angular_velocity(altitude: float) -> float:
+    return math.sqrt(G * M / (altitude) ** 3)
+########################################################################################
+# ABOUT INITIALIZATION END
+########################################################################################
 
-    _locations = []
-    theta_gap = 2 * math.pi / len(locations)  # For regular interval # 일정한 간격
-
-    return _locations
 
 
-def get_relative_velocity_list(ac1: AirCraft, los: list):
-    rv_list = []
 
-    # for layer_idx, orbit in enumerate(los):  
-    #     for sat_idx, sat in enumerate(orbit):
-    #         # print(sat.get_position())
-    #         # print("LAYER : ", layer_idx, "SAT ", sat_idx, " ==> ", sat.get_position())
-    #         if(is_line_of_sight(ac1, sat)):
-    #             line_of_sight_list.append((layer_idx, sat_idx))
+########################################################################################
+# ABOUT RELATIVE VELOCITY START
+########################################################################################
+def get_relative_velocity(ac1: AirCraft, ac2: AirCraft) -> tuple:
+    _v1x, _v1y, _v1z = ac1.get_velocity()
+    _v2x, _v2y, _v2z = ac2.get_velocity()
+    return (_v1x - _v2x, _v1y - _v2y, _v1z - _v2z)
 
-    # return line_of_sight_list
+def get_relative_velocity_list(ac1: AirCraft, sats: List[List[AirCraft]], visible_list: List[List[bool]]) -> list:
+    _rvs = []    
+    for orbit_idx, orbit in enumerate(visible_list):
+        _rv_row = []
+        for sat_idx, is_visible in enumerate(orbit):
+            if(is_visible):
+                _rv = get_relative_velocity(ac1, sats[orbit_idx][sat_idx])
+                _rv_row.append(_rv)
+            else:
+                _rv_row.append((0,0,0))
+        _rvs.append(_rv_row)
+    return _rvs
+########################################################################################
+# ABOUT RELATIVE VELOCITY END
+########################################################################################
+
+
+
 
 
 ########################################################################################
@@ -106,20 +159,25 @@ def is_line_of_sight(ac1: AirCraft, ac2: AirCraft) -> bool:
     _angle = get_angle(_x1, _y1, _x2, _y2)
 
     # print("MINIMUM ANGLE => ", _minimum_angle, "CURRENT ANGLE => ", _angle)
-
+    if(abs(_angle) < 0.001 and get_distance(ac1, ac2) < R):
+        return True
+    
     return abs(_angle) > _minimum_angle
 
 def get_line_of_sight_list(ac1: AirCraft, orbits) -> list:
-    line_of_sight_list = []
-    for layer_idx, orbit in enumerate(orbits):  
-        for sat_idx, sat in enumerate(orbit):
+    _los_orbits = []
+    for orbit in orbits:  
+        _los_orbit = []
+        for sat in orbit:
             # print(sat.get_position())
             # print("LAYER : ", layer_idx, "SAT ", sat_idx, " ==> ", sat.get_position())
             if(is_line_of_sight(ac1, sat)):
-                line_of_sight_list.append((layer_idx, sat_idx))
+                _los_orbit.append(True)
+            else: 
+                _los_orbit.append(False)
+        _los_orbits.append(_los_orbit)
 
-    return line_of_sight_list
-
+    return _los_orbits
 ########################################################################################
 # ABOUT LINE OF SIGHT END
 ########################################################################################
@@ -129,7 +187,6 @@ def get_line_of_sight_list(ac1: AirCraft, orbits) -> list:
 ########################################################################################
 # ABOUT CHANNEL LOSS START
 ########################################################################################
-
 def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0):
     _term1 = 20 * math.log10(distance)
     _term2 = 20 * math.log10(FREQUENCY * velocity * math.cos(propagation_velocity_angle) / C)
@@ -137,7 +194,6 @@ def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0)
     fspl = _term1 + _term2 + _term3
 
     return fspl
-
 ########################################################################################
 # ABOUT CHANNEL LOSS END
 ########################################################################################
@@ -147,13 +203,11 @@ def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0)
 ########################################################################################
 # ABOUT CHANNEL CAPACITY START
 ########################################################################################
-
 def channel_capacity(transmit_power, distance, velocity, propagation_velocity_angle):
     _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
     _Pn = -174 + 10*math.log(BAND_WIDTH)
     _snr = _Pr-_Pn
     return BAND_WIDTH * math.log2(1+_snr)
-
 ########################################################################################
 # ABOUT CHANNEL CAPACITY END
 ########################################################################################
