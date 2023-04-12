@@ -1,8 +1,8 @@
 from typing import List
 
-from Constants import *
-from AirCraft import *
-from pySatelliteUtils import *
+from .Constants import *
+from .AirCraft import *
+from .pySatelliteUtils import *
 
 import random
 import time
@@ -46,39 +46,40 @@ class CircularOrbit:
 
         self.los_list = []
         self.los_propagation_angle_list = [] # The value is 0 when 
+        self.tp = 0
 
-    def reward_function(self, tp, sat: tuple):
-        _tp = tp
+    def get_reward(self, tp: float, sat: tuple):
         _sat_orbit, _sat_idx = sat
 
         _target_sat = self.get_satellite(_sat_orbit, _sat_idx)
         _dist = get_distance(self.get_current_satellite(), _target_sat)
 
-        _cp = channel_capacity(transmit_power=_tp, 
+        _cp = channel_capacity(transmit_power=self.tp, 
                                distance=_dist, 
                                velocity=self.get_current_satellite().get_velocity_mag(), 
                                propagation_velocity_angle=self.los_propagation_angle_list[_sat_orbit][_sat_idx])
-        reward = _cp / _tp
+        reward = _cp / tp
         
         return reward
-    
-    def get_step(self):
-        pass
 
-    def step(self, sat_orbit= 0, sat_idx=0, power = 0):
-        _current_state = self._get_state()
-
-        # Model choose the index of will propagate and power to transmit 
-        
-        # reward = self.reward_function()
-        reward = 0
-        done = np.array_equal(self.source_satellite, self.destination_satellite)
-
-        return self._get_state(), reward, done, {}
-    
-    def set_action(self, action: List[float, tuple(0,0)]):
-
+    def step(self, action):
         _tp = action[0]
+        _sat_orbit = action[1][0]
+        _sat_idx = action[1][1]
+
+        reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
+        transmission_time = propagation_latency(self.get_current_satellite(), self.get_satellite(_sat_orbit, _sat_idx))
+
+        self.set_action([_tp, (_sat_orbit, _sat_idx)])
+
+        done = np.array_equal(self.source_satellite, self.destination_satellite)
+        
+        self.rotate(transmission_time)
+
+        return transmission_time, reward, done, {}
+    
+    def set_action(self, action: list):
+        self.tp = action[0]
         self.source_satellite = action[1]
 
     def get_state(self):
@@ -127,7 +128,6 @@ class CircularOrbit:
                 print("##############################################################")
     
     def plot(self) -> None:
-        
         try:
             plt.clf()
         except:

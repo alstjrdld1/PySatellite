@@ -1,5 +1,5 @@
 import math
-from Constants import *
+from .Constants import *
 
 class AirCraft:
     '''

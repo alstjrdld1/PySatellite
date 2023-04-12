@@ -1,5 +1,5 @@
-from AirCraft import * 
-from Constants import *
+from .AirCraft import * 
+from .Constants import *
 
 from typing import List
 import math
@@ -78,7 +78,7 @@ def get_points_on_earth(d: float, num_points: int) -> list:
         theta = i * _theta_gap
         x = d * math.cos(theta)
         y = d * math.sin(theta)
-        print("THEATA => ", theta, "X => ", x, "Y => ", y)
+        # print("THEATA => ", theta, "X => ", x, "Y => ", y)
         _points.append((x, y))
 
     return _points
