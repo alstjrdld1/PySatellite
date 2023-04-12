@@ -156,10 +156,7 @@ class CircularOrbit:
         plt.plot(dest_sat.get_position()[0] / R, dest_sat.get_position()[1] / R, marker='o', color='green')
 
         plt.axis('equal')
-        plt.show()
-
-        plt.close()
-        
+        plt.show()  
 
 if __name__=="__main__":
     # sat1 = Satellite()
