@@ -42,8 +42,20 @@ def get_propagation_angle(src_ac: AirCraft, dst_ac: AirCraft) -> float : # Outpu
 
     if(_mag1 == 0 or _mag2 == 0):
         return 0
+    _cos_theta = _dot_prod / (_mag1*_mag2)
+    if _cos_theta < -1:
+        _cos_theta = -1
+    elif _cos_theta > 1 :
+        _cos_theta = 1
     
-    _angle = math.acos(_dot_prod / (_mag1*_mag2))
+    try:
+        _angle = math.acos(_cos_theta)
+    except Exception as e :
+        print (e)
+        print(_dot_prod)
+        print(_mag1)
+        print(_mag2)
+        raise 
 
     return _angle
 
@@ -188,8 +200,14 @@ def get_line_of_sight_list(ac1: AirCraft, orbits) -> list:
 # ABOUT CHANNEL LOSS START
 ########################################################################################
 def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0):
+    # print("DISTANCE : ", distance, "VELOCITY : ", velocity, "PROP VEL ANGLE : ", propagation_velocity_angle)
+    
+    if(distance == 0):
+        return 0
+    
     _term1 = 20 * math.log10(distance)
-    _term2 = 20 * math.log10(FREQUENCY * velocity * math.cos(propagation_velocity_angle) / C)
+    _f_r = FREQUENCY * velocity * abs(math.cos(propagation_velocity_angle) / C)
+    _term2 = 20 * math.log10(_f_r)
     _term3 = 20 * math.log10(4 * PI / C)
     fspl = _term1 + _term2 + _term3
 
