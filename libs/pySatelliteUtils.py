@@ -217,8 +217,9 @@ def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0)
 # ABOUT CHANNEL LOSS END
 ########################################################################################
 
-def get_snr():
-    _Pr = TRANSMISSION_POWER * TRANSMITTER_ANTENNA_GAIN * RECEIVER_ANTENNA_GAIN * TRANSMITTER_ANTENNA_EFFICIENCY * RECEIVER_ANTENNA_EFFICIENCY
+def get_snr(distance, velocity, velocity_angle):
+    _freq = FREQUENCY * velocity  * abs(math.cos(velocity_angle) / C)
+    _Pr = TRANSMISSION_POWER * (ANTENNA_EFFICIENCY**2) * (PI**2) * (ANTENNA_DIAMETER**4) * (_freq**2) / (16 * (C **2) * (distance**2))
     _snr = _Pr / (ADDITIONAL_NOISE_RECEIVER*BOLTZMAN_CONSTANT*TEMPERATURE*BAND_WIDTH)
     return _snr
 
@@ -226,10 +227,13 @@ def get_snr():
 # ABOUT CHANNEL CAPACITY START
 ########################################################################################
 def channel_capacity(transmit_power, distance, velocity, propagation_velocity_angle):
+    if(distance == 0):
+        distance = 1
     _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
     _Pn = -174 + 10*math.log(BAND_WIDTH)
     _snr = _Pr - _Pn
     print(_snr)
+    # _snr = get_snr(distance, velocity, propagation_velocity_angle)
     return BAND_WIDTH * math.log2(1+_snr)
 ########################################################################################
 # ABOUT CHANNEL CAPACITY END

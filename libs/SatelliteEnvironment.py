@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class CircularOrbit:
     def __init__(self, 
-                 satellite_num: int = 8,
+                 satellite_num: int = 70,
                  orbit_alts: list = [400, 1000]): # UNIT KM
         
         self.orbit_num = len(orbit_alts)
@@ -65,9 +65,9 @@ class CircularOrbit:
         _transmission_time = propagation_latency(self.get_current_satellite(), _target_sat)
         
         if(_transmission_time == 0):
-            reward = (_cp / tp) * (_dist / 1)
+            reward = (_cp / tp)
         else:
-            reward = (_cp / tp) * (_dist / _transmission_time)
+            reward = (_cp / tp) * (math.log(_dist) / _transmission_time)
         
         return reward
 
