@@ -200,6 +200,7 @@ def get_line_of_sight_list(ac1: AirCraft, orbits) -> list:
 # ABOUT CHANNEL LOSS START
 ########################################################################################
 def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0):
+
     # print("DISTANCE : ", distance, "VELOCITY : ", velocity, "PROP VEL ANGLE : ", propagation_velocity_angle)
     
     if(distance == 0):
@@ -216,7 +217,10 @@ def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0)
 # ABOUT CHANNEL LOSS END
 ########################################################################################
 
-
+def get_snr():
+    _Pr = TRANSMISSION_POWER * TRANSMITTER_ANTENNA_GAIN * RECEIVER_ANTENNA_GAIN * TRANSMITTER_ANTENNA_EFFICIENCY * RECEIVER_ANTENNA_EFFICIENCY
+    _snr = _Pr / (ADDITIONAL_NOISE_RECEIVER*BOLTZMAN_CONSTANT*TEMPERATURE*BAND_WIDTH)
+    return _snr
 
 ########################################################################################
 # ABOUT CHANNEL CAPACITY START
@@ -230,5 +234,3 @@ def channel_capacity(transmit_power, distance, velocity, propagation_velocity_an
 ########################################################################################
 # ABOUT CHANNEL CAPACITY END
 ########################################################################################
-
-
