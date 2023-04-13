@@ -6,11 +6,11 @@ except:
     os.system("pip install numpy")
 
 DATA_AMOUNT = 0
-BAND_WIDTH = 200
-FREQUENCY = 200 # 
+BAND_WIDTH = 200e6 # MHz
+FREQUENCY = 100e9 # GHz
 MAXIMUM_TIME = 0.1 # s
 EARTH_CENTER_LOC = (0,0,0)
-TRANSMISSION_POWER = 3 # dB
+TRANSMISSION_POWER = 80 # dB
 
 PI = np.pi
 G = 6.6743e-11  # gravitational constant, m^3/(kg s^2)

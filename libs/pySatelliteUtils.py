@@ -224,7 +224,8 @@ def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0)
 def channel_capacity(transmit_power, distance, velocity, propagation_velocity_angle):
     _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
     _Pn = -174 + 10*math.log(BAND_WIDTH)
-    _snr = _Pr-_Pn
+    _snr = _Pr - _Pn
+    print(_snr)
     return BAND_WIDTH * math.log2(1+_snr)
 ########################################################################################
 # ABOUT CHANNEL CAPACITY END
