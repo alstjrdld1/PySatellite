@@ -130,7 +130,8 @@ class DQNAgent:
         }, self.save_path+'/ckpt')
 
     # 학습 기록 
-    def write_summary(self, score, loss, epsilon, step):
-        self.writer.add_scalar("Episode Reward", score, step)
-        self.writer.add_scalar("Episode Loss", loss, step)
+    def write_summary(self, score, loss, step, episode):
+        self.writer.add_scalar("Episode Reward", score, episode)
+        self.writer.add_scalar("Episode Loss", loss, episode)
+        self.writer.add_scalar("Episode step", step, episode)
         # self.writer.add_scalar("model/epsilon", epsilon, step)
