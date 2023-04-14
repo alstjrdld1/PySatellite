@@ -1,13 +1,15 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from libs.Constants import *
 
 class Net(nn.Module):
     def __init__(self, 
-                 num_state, 
-                 hidden_size, 
-                 num_action):
+                 num_states     = NUM_STATES, 
+                 hidden_size    = HIDDEN_SIZE, 
+                 num_action     = NUM_ACTIONS):
+        
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(num_state, hidden_size)
+        self.fc1 = nn.Linear(num_states, hidden_size)
         self.fc2 = nn.Linear(hidden_size, num_action)
     
     def forward(self, x):

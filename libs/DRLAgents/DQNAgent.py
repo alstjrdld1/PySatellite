@@ -1,6 +1,7 @@
 from libs.Constants import *
 
 from libs.DRLAgents.AgentUtils.DQN import *
+from libs.DRLAgents.AgentUtils.Net import *
 
 import copy
 import random
@@ -29,7 +30,7 @@ class DQNAgent:
                  save_path          = SAVE_PATH,
                  train_mode         = True):
         
-        self.network = DQN(
+        self.network = Net(
             num_states=num_states,
             num_action=num_action
         ).to(device)
@@ -51,6 +52,8 @@ class DQNAgent:
         self.writer             = SummaryWriter(self.save_path)
         self.action_size        = num_action
         self.device             = device
+
+        self.memory_counter     = 0
         
     def load_model(self, load_path):
         print(f"... Load Model from {load_path}/ckpt ...")
@@ -78,12 +81,16 @@ class DQNAgent:
             action = np.random.randint(0, self.action_size)
         # 네트워크 연산에 따라 행동 결정
         else:
-            q = self.network(torch.FloatTensor(state).to(self.device))
+            _data = torch.FloatTensor(state)
+            print(_data.shape)
+            _data = _data.view(1, 4004)
+            q = self.network(_data.to(self.device))
             action = torch.argmax(q, axis=-1, keepdim=True).data.cpu().numpy()
         return action
 
     # 리플레이 메모리에 데이터 추가 (상태, 행동, 보상, 다음 상태, 게임 종료 여부)
     def append_sample(self, state, action, reward, next_state, done):
+        self.memory_counter += 1
         self.memory.append((state, action, reward, next_state, done))
 
     # 학습 수행

@@ -31,7 +31,10 @@ class DQN(torch.nn.Module):
         self.q = torch.nn.Linear(512, num_action)
 
     def forward(self, x):
-        x = x.permute(0, 3, 1, 2)
+        try:
+            x = x.permute(0, 3, 1, 2)
+        except :
+            print(x)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))

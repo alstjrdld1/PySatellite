@@ -151,6 +151,10 @@ class CircularOrbit:
         try:
             # print("GET_SATELLITE_LAYER : ", layer)
             # print("GET_SATELLITE_INDEX : ", index)
+            print(layer)
+            print(type(layer))
+            print(index)
+            print(type(index))
             return self.orbits[layer][index]
         except Exception as e: 
             print(e)

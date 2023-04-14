@@ -11,8 +11,8 @@ except:
     os.system("pip install torch")
 
 DATA_AMOUNT = 0
-BAND_WIDTH = 50e9 # GHz
-FREQUENCY = 340e9 # GHz
+BAND_WIDTH = 50e9 # Hz GHz = 1e9
+FREQUENCY = 340e9 # Hz GHz = 1e9
 MAXIMUM_TIME = 0.1 # s
 EARTH_CENTER_LOC = (0,0,0)
 
@@ -38,14 +38,14 @@ PI = np.pi
 G = 6.6743e-11               # gravitational constant, m^3/(kg s^2)
 M = 5.972e24                 # mass of Earth, kg
 R = 6371000                  # radius of Earth, m
-C = 300000000                # m/s
+C = 3e9                      # m/s
 BOLTZMAN_CONSTANT = 1.38e-23 # J/K
 
 ##### FOR DRL 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 NUM_STATES = 5
-HIDDEN_SIZE = 64
+HIDDEN_SIZE = 256
 NUM_ACTIONS = 5
 
 BATCH_SIZE              = 128
@@ -68,4 +68,4 @@ MEMORY_CAPACITY = 2000
 
 ############# FOR UTILS
 
-SAVE_PATH = "/saves"
+SAVE_PATH = "runs/satellite"
