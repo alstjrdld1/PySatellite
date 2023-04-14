@@ -65,9 +65,9 @@ class CircularOrbit:
         _transmission_time = propagation_latency(self.get_current_satellite(), _target_sat)
         
         if(_transmission_time == 0):
-            reward = (_cp / tp)
+            reward = (math.log(_cp) / tp)
         else:
-            reward = (_cp / tp) * (math.log(_dist) / _transmission_time)
+            reward = (math.log(_cp) / tp) * (math.log(_dist) / _transmission_time)
         
         return reward
 
