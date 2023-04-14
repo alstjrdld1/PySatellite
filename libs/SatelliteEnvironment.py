@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class CircularOrbit:
     def __init__(self, 
-                 satellite_num: int = 70,
+                 satellite_num: int = 8,
                  orbit_alts: list = [400, 1000]): # UNIT KM
         
         self.orbit_num = len(orbit_alts)

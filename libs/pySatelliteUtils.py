@@ -203,13 +203,15 @@ def free_space_path_loss(distance, velocity, propagation_velocity_angle: int =0)
 
     # print("DISTANCE : ", distance, "VELOCITY : ", velocity, "PROP VEL ANGLE : ", propagation_velocity_angle)
     
-    if(distance == 0):
-        return 0
-    
     _term1 = 20 * math.log10(distance)
+    # print("_TERM1 : ", _term1)
     _f_r = FREQUENCY * velocity * abs(math.cos(propagation_velocity_angle) / C)
+    # print("_F_R : ", _f_r)
     _term2 = 20 * math.log10(_f_r)
+    # print("_TERM2 : ", _term2)
     _term3 = 20 * math.log10(4 * PI / C)
+    # print("_TERM3 : ", _term3)
+
     fspl = _term1 + _term2 + _term3
 
     return fspl
@@ -227,13 +229,18 @@ def get_snr(distance, velocity, velocity_angle):
 # ABOUT CHANNEL CAPACITY START
 ########################################################################################
 def channel_capacity(transmit_power, distance, velocity, propagation_velocity_angle):
-    if(distance == 0):
+    if(distance < 1):
         distance = 1
-    # _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
-    # _Pn = -174 + 10*math.log(BAND_WIDTH)
-    # _snr = _Pr - _Pn
-    # print(_snr)
-    _snr = get_snr(distance, velocity, propagation_velocity_angle)
+    _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
+    # print("_Pr : ", _Pr)
+    
+    _Pn = -174 + 10*math.log(BAND_WIDTH)
+    # print("_Pn : ", _Pn)
+
+    _snr = _Pr - _Pn
+    if(_snr < -1):
+        return 1
+    # _snr = get_snr(distance, velocity, propagation_velocity_angle)
     return BAND_WIDTH * math.log2(1+_snr)
 ########################################################################################
 # ABOUT CHANNEL CAPACITY END

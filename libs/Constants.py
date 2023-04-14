@@ -2,8 +2,13 @@ import os
 
 try:
     import numpy as np
+    
 except:
     os.system("pip install numpy")
+try:
+    import torch
+except:
+    os.system("pip install torch")
 
 DATA_AMOUNT = 0
 BAND_WIDTH = 50e9 # GHz
@@ -37,13 +42,30 @@ C = 300000000                # m/s
 BOLTZMAN_CONSTANT = 1.38e-23 # J/K
 
 ##### FOR DRL 
-BATCH_SIZE = 128
-LR = 0.01
-GAMMA = 0.90
-EPISILO = 0.9
-MEMORY_CAPACITY = 2000
-Q_NETWORK_ITERATION = 100
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-NUM_ACTIONS = 5
 NUM_STATES = 5
 HIDDEN_SIZE = 64
+NUM_ACTIONS = 5
+
+BATCH_SIZE              = 128
+LR                      = 0.01
+GAMMA                   = 0.9
+Q_NETWORK_ITERATION     = 100
+
+RUN_STEP                = 50000
+TEST_STEP               = 5000
+EXPLORE_STEP            = RUN_STEP * 0.8
+
+########## FOR DQN
+EPSILON_EVAL = 0.05
+EPSILON_INIT = 1.0 
+EPSILON_MIN = 0.1
+
+EPISILO = 0.9
+DISCOUNT_FACTOR = 0.9
+MEMORY_CAPACITY = 2000
+
+############# FOR UTILS
+
+SAVE_PATH = "/saves"

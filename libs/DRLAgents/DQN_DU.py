@@ -1,5 +1,5 @@
-from .Net import *
-from ..Constants import *
+from .AgentUtils.Net import *
+from libs.Constants import *
 
 import numpy as np
 
