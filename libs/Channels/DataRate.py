@@ -1,6 +1,8 @@
+from libs.Constants import *
 import math 
 
-def shannon_hartley(bandwidth, snr):
+def shannon_hartley(snr,
+                    bandwidth = BAND_WIDTH):
     """
     Calculate the maximum data rate using the Shannon-Hartley theorem.
 

@@ -35,3 +35,9 @@ def get_snr_fspl(distance,
     snr_db = 10 * math.log10(snr_lin)
 
     return snr_db
+
+def get_snr_consider_antenna_diameter(distance, velocity, velocity_angle):
+    _freq = FREQUENCY * velocity  * abs(math.cos(velocity_angle) / C)
+    _Pr = (TRANSMISSION_POWER * (ANTENNA_EFFICIENCY**2) * (PI**2) * (ANTENNA_DIAMETER**4) * (_freq**2)) / (16 * (C **2) * (distance**2))
+    _snr = _Pr / (ADDITIONAL_NOISE_RECEIVER*BOLTZMAN_CONSTANT*TEMPERATURE*BAND_WIDTH)
+    return _snr

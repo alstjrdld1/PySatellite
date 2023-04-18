@@ -9,7 +9,6 @@ from libs.Channels.DataRate import *
 from libs.Channels.SNR import *
 
 import random
-import time
 import matplotlib.pyplot as plt
 
 class CircularOrbit:
@@ -69,7 +68,8 @@ class CircularOrbit:
         #                        distance=_dist, 
         #                        velocity=self.get_current_satellite().get_velocity_mag(), 
         #                        propagation_velocity_angle=self.los_propagation_angle_list[_sat_orbit][_sat_idx])
-        _cp = get_snr_fspl(distance=_dist)
+        _snr = get_snr_fspl(distance=_dist)
+        _cp = shannon_hartley(_snr)
         
         _transmission_time = propagation_latency(self.get_current_satellite(), _target_sat)
         
@@ -156,8 +156,6 @@ class CircularOrbit:
         _flatten = np.concatenate([_flatten, _dst_sat_flatten])
 
         np.append(_flatten, self.rest_time)
-        # _rest_time = np.array(self.rest_time)
-        # _flatten = np.concatenate([_flatten, _rest_time])
 
         _los_list = np.array(self.los_list).flatten()
         _flatten = np.concatenate([_flatten, _los_list])
