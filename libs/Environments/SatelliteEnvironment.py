@@ -73,10 +73,7 @@ class CircularOrbit:
         
         _transmission_time = propagation_latency(self.get_current_satellite(), _target_sat)
         
-        reward = (_cp / tp) * (math.log(1 + _dist) / (1+_transmission_time))
-        # reward = _cp / tp
-        
-        return reward
+        return (_cp / tp) * (math.log(1 + _dist) / (1+_transmission_time))
 
     def step(self, action:int):
         _tp = TRANSMISSION_POWER
