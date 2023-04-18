@@ -1,6 +1,9 @@
 libs/__pycache__
 
 libs/DRLAgents/__pycache__
+libs/Channels/__pycache__
+libs/Environments/__pycache__
 
 /runs
-/.ipynb_checkpoints
+/satellite
+.ipynb_checkpoints

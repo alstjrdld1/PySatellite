@@ -19,7 +19,10 @@ import math
 def get_distance(ac1: AirCraft, ac2: AirCraft) -> float: # Output : distance  UNIT -> [m]
     ac1_pos = ac1.get_position()
     ac2_pos = ac2.get_position()
-    return math.sqrt((ac1_pos[0] - ac2_pos[0])**2 + (ac1_pos[1] - ac2_pos[1])**2 + (ac1_pos[2] - ac2_pos[2])**2)
+    _term1 = (ac1_pos[0] - ac2_pos[0])**2
+    _term2 = (ac1_pos[1] - ac2_pos[1])**2
+    _term3 = (ac1_pos[2] - ac2_pos[2])**2
+    return math.sqrt( _term1 + _term2 + _term3 )
 
 ########################################################################################
 # ABOUT PROPAGATION START 
@@ -229,18 +232,19 @@ def get_snr(distance, velocity, velocity_angle):
 # ABOUT CHANNEL CAPACITY START
 ########################################################################################
 def channel_capacity(transmit_power, distance, velocity, propagation_velocity_angle):
-    if(distance < 1):
-        distance = 1
-    _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
+    # if(distance < 1):
+    #     distance = 1
+    # _Pr = transmit_power - free_space_path_loss(distance=distance, velocity=velocity, propagation_velocity_angle=propagation_velocity_angle)
     # print("_Pr : ", _Pr)
     
-    _Pn = -174 + 10*math.log(BAND_WIDTH)
+    # _Pn = -174 + 10*math.log(BAND_WIDTH)
     # print("_Pn : ", _Pn)
 
-    _snr = _Pr - _Pn
-    if(_snr < -1):
-        return 1
-    # _snr = get_snr(distance, velocity, propagation_velocity_angle)
+    # _snr = _Pr - _Pn
+    # if(_snr < -1):
+    #     return 1
+    _snr = get_snr(distance, velocity, propagation_velocity_angle)
+    
     return BAND_WIDTH * math.log2(1+_snr)
 ########################################################################################
 # ABOUT CHANNEL CAPACITY END

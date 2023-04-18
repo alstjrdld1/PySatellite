@@ -2,6 +2,7 @@ from libs.Constants import *
 
 from libs.DRLAgents.AgentUtils.DQN import *
 from libs.DRLAgents.AgentUtils.Net import *
+from libs.DRLAgents.AgentUtils.CNN import *
 
 import copy
 import random
@@ -32,8 +33,11 @@ class DQNAgent:
         
         self.network = Net(
             num_states=num_states,
-            num_action=num_action
+            hidden_size=hidden_size,
+            num_action=num_action,
         ).to(device)
+
+        self.num_states         = num_states
 
         self.target_network     = copy.deepcopy(self.network)
         self.optimizer          = torch.optim.Adam(self.network.parameters(), lr=learning_rate)
@@ -45,7 +49,7 @@ class DQNAgent:
         self.epsilon            = epsilon_init
         self.epsilon_eval       = epsilon_eval
         self.epsilon_min        = epsilon_min
-        self.epsilon_delta      = (epsilon_init - epsilon_min)/EXPLORE_STEP if train_mode else 0.
+        self.epsilon_delta      = (epsilon_init - epsilon_min)/10000
 
         self.save_path          = save_path
 
@@ -81,20 +85,25 @@ class DQNAgent:
             action = np.random.randint(0, self.action_size)
         # 네트워크 연산에 따라 행동 결정
         else:
-            _data = torch.FloatTensor(state)
-            print(_data.shape)
-            _data = _data.view(1, 4004)
-            q = self.network(_data.to(self.device))
+            state = torch.FloatTensor(state)
+            state = state.view(-1, self.num_states).to(self.device)
+            q = self.network(state)
             action = torch.argmax(q, axis=-1, keepdim=True).data.cpu().numpy()
+            action = action
+
         return action
 
     # 리플레이 메모리에 데이터 추가 (상태, 행동, 보상, 다음 상태, 게임 종료 여부)
     def append_sample(self, state, action, reward, next_state, done):
+        if(type(action) == np.ndarray):
+            action = action[0][0]
         self.memory_counter += 1
         self.memory.append((state, action, reward, next_state, done))
 
     # 학습 수행
     def train_model(self):
+        # print("BATCH_SIZE : ", self.batch_size)
+
         batch      = random.sample(self.memory, self.batch_size)
         state      = np.stack([b[0] for b in batch], axis=0)
         action     = np.stack([b[1] for b in batch], axis=0)
@@ -107,7 +116,9 @@ class DQNAgent:
 
         eye = torch.eye(self.action_size).to(self.device)
         one_hot_action = eye[action.view(-1).long()]
-        q = (self.network(state) * one_hot_action).sum(1, keepdims=True)
+        
+        _result = self.network(state)
+        q = (_result * one_hot_action).sum(1, keepdims=True)
 
         with torch.no_grad():
             next_q = self.target_network(next_state)
