@@ -25,7 +25,10 @@ class CircularOrbit:
         self.orbit_altitude_list = orbit_alts
 
         self.current_step = 0
-        self.max_step = int(satellite_num / 2)
+        # self.max_step = int(satellite_num / 2)
+        self.max_step = satellite_num
+        # self.max_step = 50
+        self.current_reward = 0
 
         self.reset()
 
@@ -33,6 +36,8 @@ class CircularOrbit:
         self.orbit_altitude_list.sort() # Orbit sort into 100, 200, 300 
         self.orbits = []
         self.current_step = 0
+        self.current_reward = 0
+        self.jump_list = []
 
         for altitude in self.orbit_altitude_list:
             i_th_orbit = []
@@ -48,8 +53,9 @@ class CircularOrbit:
             self.orbits.append(i_th_orbit)
 
         self.source_satellite = (random.randint(0, len(self.orbit_altitude_list) - 1), random.randint(0, self.satellite_num - 1)) # orbit index, satellite index
-        # self.destination_satellite = (random.randint(0, len(self.orbit_altitude_list) - 1), random.randint(0, self.satellite_num - 1)) # orbit index, satellite index
-        self.destination_satellite = (1, 2499)
+        self.current_satellite = self.source_satellite
+        self.destination_satellite = (random.randint(0, len(self.orbit_altitude_list) - 1), random.randint(0, self.satellite_num - 1)) # orbit index, satellite index
+        # self.destination_satellite = (1, 2499)
 
         self.rest_time = MAXIMUM_TIME
 
@@ -62,6 +68,7 @@ class CircularOrbit:
 
         _target_sat = self.get_satellite(_sat_orbit, _sat_idx)
         _dist = get_distance(self.get_current_satellite(), _target_sat)
+        _dist = _dist * 1e5
 
         # print("DISTANCE : ", _dist)
         # _cp = channel_capacity(transmit_power=self.tp, 
@@ -73,7 +80,7 @@ class CircularOrbit:
         
         _transmission_time = propagation_latency(self.get_current_satellite(), _target_sat)
         
-        return (_cp / tp) * (math.log(1 + _dist) / (1+_transmission_time))
+        return math.log(1 + (_cp / tp)) / (1+_transmission_time)
 
     def step(self, action:int):
         _tp = TRANSMISSION_POWER
@@ -87,16 +94,24 @@ class CircularOrbit:
             raise
 
         _target_satellite = self.get_satellite(_sat_orbit, _sat_idx)
+        self.jump_list.append((_sat_orbit, _sat_idx))
 
         reward = 0 
         done = False
         info = {}
 
         if action in self.los():
-            reward += 100
+            # _is_prev = np.array_equal(self.current_satellite, (_sat_orbit, _sat_idx))
+            # if(_is_prev):
+            #     reward -= 1
+            # else:
+            #     reward += 5
+
+            # self.current_reward += 0.001
 
             _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
-            reward += _reward
+            # print("CP REWARD : ", _reward) # 0 ~ 28
+            self.current_reward += _reward
 
             transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
         
@@ -105,31 +120,46 @@ class CircularOrbit:
             self.rotate(transmission_time)
 
             self.tp = TRANSMISSION_POWER
-            self.source_satellite = (_sat_orbit, _sat_idx)
+            self.current_satellite = (_sat_orbit, _sat_idx)
 
-            done = np.array_equal(self.source_satellite, self.destination_satellite)
+            done = np.array_equal(self.current_satellite, self.destination_satellite)
+
             if(done):
-                reward = reward**2
+                info['reason'] = 'FINISH'
+                reward = 10*self.current_reward / (self.current_step+1)
+                print("#####################################################")
+                print("Reward : ", reward)
+                print("#####################################################")
+            # else:
+                # print("CURRENT SAT : ", self.source_satellite)
+                # print("DEST SAT : ", self.destination_satellite)
             self.current_step +=1
         else:
             # print("#####################################################")
             # print(self.los())
             # print(action)
             # print("#####################################################")
-            reward = -9999
+            reward = -10
             info["reason"] = "NON LINE of sight"
             done = True
 
         if self.rest_time < 0:
-            reward = -1000
+            reward = -10
             info['reason'] = "TIME OUT"
             done = True
 
         if self.current_step > self.max_step:
-            reward = -1000
+            reward = -10
             info["reason"] = "exceed max step"
             done = True
-            
+
+        if done:
+            print("SRC : ", self.source_satellite)
+            print("CURRENT : ", self.current_satellite)
+            print("DEST : ", self.destination_satellite)
+            print("JUMP LIST : ", self.jump_list)
+            print(info)
+
         return reward, done, info
     
     def set_action(self, action: int) -> list:
@@ -140,32 +170,39 @@ class CircularOrbit:
         return [_sat_orbit, _sat_idx]
 
     def get_state(self):
-        self.los_list = get_line_of_sight_list(self.get_current_satellite(), self.orbits)
+        self.los_list = get_line_of_sight_list(ac1    = self.get_current_satellite(), 
+                                               srcsat = self.get_satellite(self.source_satellite[0], self.source_satellite[1]),
+                                               dstsat = self.get_satellite(self.destination_satellite[0], self.destination_satellite[1]),
+                                               orbits = self.orbits)
 
         # relative_velocity = get_relative_velocity_list(self.get_current_satellite(), self.orbits, self.los_list)
-        self.los_propagation_angle_list = get_propagation_angle_list(self.get_current_satellite(), self.orbits, self.los_list)
+        # self.los_propagation_angle_list = get_propagation_angle_list(self.get_current_satellite(), self.orbits, self.los_list)
+        # _distance_list = get_distance_list(self.get_current_satellite(), self.orbits)
         
         _flatten = np.array([])
-        _src_sat_flatten = np.array(self.source_satellite)
-        _flatten = np.concatenate([_flatten, _src_sat_flatten])
+        # _src_sat_flatten = np.array(self.current_satellite)
+        # _flatten = np.concatenate([_flatten, _src_sat_flatten])
 
-        _dst_sat_flatten = np.array(self.destination_satellite)
-        _flatten = np.concatenate([_flatten, _dst_sat_flatten])
+        # _dst_sat_flatten = np.array(self.destination_satellite)
+        # _flatten = np.concatenate([_flatten, _dst_sat_flatten])
 
-        np.append(_flatten, self.rest_time)
+        # np.append(_flatten, self.rest_time)
 
         _los_list = np.array(self.los_list).flatten()
         _flatten = np.concatenate([_flatten, _los_list])
 
-        _prop_angle_list = np.array(self.los_propagation_angle_list).flatten()
-        _flatten = np.concatenate([_flatten, _prop_angle_list])
+        # _dist_list = np.array(_distance_list).flatten()
+        # _flatten = np.concatenate([_flatten, _dist_list])
+
+        # _prop_angle_list = np.array(self.los_propagation_angle_list).flatten()
+        # _flatten = np.concatenate([_flatten, _prop_angle_list])
         
         _length = len(_flatten)
         return _flatten
 
     def get_current_satellite(self) -> Satellite:
-        _layer = self.source_satellite[0]
-        _idx = self.source_satellite[1]
+        _layer = self.current_satellite[0]
+        _idx = self.current_satellite[1]
         return self.orbits[_layer][_idx]
 
     def get_destination_satellite(self) -> Satellite:
@@ -207,7 +244,7 @@ class CircularOrbit:
                 # print("##############################################################")
 
     def los(self) -> list:
-        self.los_list = get_line_of_sight_list(self.get_current_satellite(), self.orbits)
+        self.los_list = get_line_of_sight_list_tf(self.get_current_satellite(), self.orbits)
         # print(self.los_list)
         _los = []
         for _layer, orbit in enumerate(self.los_list):

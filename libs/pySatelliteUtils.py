@@ -22,13 +22,13 @@ def get_distance(ac1: AirCraft, ac2: AirCraft) -> float: # Output : distance  UN
     _term1 = (ac1_pos[0] - ac2_pos[0])**2
     _term2 = (ac1_pos[1] - ac2_pos[1])**2
     _term3 = (ac1_pos[2] - ac2_pos[2])**2
-    return math.sqrt( _term1 + _term2 + _term3 )
+    return math.sqrt( _term1 + _term2 + _term3 ) * 1e-5
 
 ########################################################################################
 # ABOUT PROPAGATION START 
 ########################################################################################
 def propagation_latency(src: AirCraft, dst: AirCraft) -> float: # Output : latency time  UNIT -> [s]
-    return get_distance(src, dst) / C
+    return 1e5 * get_distance(src, dst) / C
 
 def get_propagation_angle(src_ac: AirCraft, dst_ac: AirCraft) -> float : # Output : Radian
     src_pos = src_ac.get_position()
@@ -178,14 +178,11 @@ def is_line_of_sight(ac1: AirCraft, ac2: AirCraft) -> bool:
         return True
     
     return abs(_angle) > _minimum_angle
-
-def get_line_of_sight_list(ac1: AirCraft, orbits) -> list:
+def get_line_of_sight_list_tf(ac1: AirCraft, orbits) -> list:
     _los_orbits = []
     for orbit in orbits:  
         _los_orbit = []
         for sat in orbit:
-            # print(sat.get_position())
-            # print("LAYER : ", layer_idx, "SAT ", sat_idx, " ==> ", sat.get_position())
             if(is_line_of_sight(ac1, sat)):
                 _los_orbit.append(True)
             else: 
@@ -193,6 +190,35 @@ def get_line_of_sight_list(ac1: AirCraft, orbits) -> list:
         _los_orbits.append(_los_orbit)
 
     return _los_orbits
+
+def get_line_of_sight_list(ac1: AirCraft, srcsat:AirCraft, dstsat:AirCraft, orbits) -> list:
+    _los_orbits = []
+    for orbit in orbits:  
+        _los_orbit = []
+        for sat in orbit:
+            if(dstsat.get_position() == sat.get_position()):
+                _los_orbit.append(2)
+            elif(srcsat.get_position() == sat.get_position()):
+                _los_orbit.append(1)
+            # print(sat.get_position())
+            # print("LAYER : ", layer_idx, "SAT ", sat_idx, " ==> ", sat.get_position())
+            else:
+                if(is_line_of_sight(ac1, sat)):
+                    _los_orbit.append(4)
+                else: 
+                    _los_orbit.append(0)
+        _los_orbits.append(_los_orbit)
+
+    return _los_orbits
 ########################################################################################
 # ABOUT LINE OF SIGHT END
 ########################################################################################
+
+def get_distance_list(ac1: AirCraft, orbits) -> list:
+    _los_orbits = []
+    for orbit in orbits:  
+        _los_orbit = []
+        for sat in orbit:
+            _los_orbits.append(get_distance(ac1, sat))
+
+    return _los_orbits
