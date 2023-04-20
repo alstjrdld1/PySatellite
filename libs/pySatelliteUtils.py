@@ -198,13 +198,13 @@ def get_line_of_sight_list(ac1: AirCraft, srcsat:AirCraft, dstsat:AirCraft, orbi
         for sat in orbit:
             if(dstsat.get_position() == sat.get_position()):
                 _los_orbit.append(2)
-            elif(srcsat.get_position() == sat.get_position()):
+            elif(ac1.get_position() == sat.get_position()):
                 _los_orbit.append(1)
             # print(sat.get_position())
             # print("LAYER : ", layer_idx, "SAT ", sat_idx, " ==> ", sat.get_position())
             else:
                 if(is_line_of_sight(ac1, sat)):
-                    _los_orbit.append(4)
+                    _los_orbit.append(3)
                 else: 
                     _los_orbit.append(0)
         _los_orbits.append(_los_orbit)

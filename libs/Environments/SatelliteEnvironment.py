@@ -26,7 +26,7 @@ class CircularOrbit:
 
         self.current_step = 0
         # self.max_step = int(satellite_num / 2)
-        self.max_step = satellite_num
+        self.max_step = 10
         # self.max_step = 50
         self.current_reward = 0
 
@@ -55,6 +55,7 @@ class CircularOrbit:
         self.source_satellite = (random.randint(0, len(self.orbit_altitude_list) - 1), random.randint(0, self.satellite_num - 1)) # orbit index, satellite index
         self.current_satellite = self.source_satellite
         self.destination_satellite = (random.randint(0, len(self.orbit_altitude_list) - 1), random.randint(0, self.satellite_num - 1)) # orbit index, satellite index
+        # self.destination_satellite = (1, 4) # orbit index, satellite index
         # self.destination_satellite = (1, 2499)
 
         self.rest_time = MAXIMUM_TIME
@@ -83,81 +84,89 @@ class CircularOrbit:
         return math.log(1 + (_cp / tp)) / (1+_transmission_time)
 
     def step(self, action:int):
+        self.plot()
         _tp = TRANSMISSION_POWER
 
         if(type(action) == np.ndarray):
             action = action[0][0]
-
         try:
             _sat_orbit, _sat_idx = self.set_action(action)
         except:
             raise
 
         _target_satellite = self.get_satellite(_sat_orbit, _sat_idx)
-        self.jump_list.append((_sat_orbit, _sat_idx))
+        self.current_step +=1
 
         reward = 0 
         done = False
         info = {}
 
-        if action in self.los():
-            # _is_prev = np.array_equal(self.current_satellite, (_sat_orbit, _sat_idx))
-            # if(_is_prev):
-            #     reward -= 1
-            # else:
-            #     reward += 5
+        _los = self.los()
 
-            # self.current_reward += 0.001
+        # print("#####################################################")
+        # print("SOURCE : ", self.source_satellite)
+        # print("CURRENT SAT : ", self.current_satellite)
+        # print("DESTINATION : ", self.destination_satellite)
+        # print("LOS LIST : ", _los)
+        # print("ACTION : ",  _sat_orbit, _sat_idx, action)
+        # print("#####################################################")
 
-            _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
-            # print("CP REWARD : ", _reward) # 0 ~ 28
-            self.current_reward += _reward
+        if self.rest_time < 0:
+            reward = -1
+            info['reason'] = "TIME OUT"
+            print(info)
+            done = True
 
-            transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
-        
-            self.rest_time -= transmission_time
+        # elif self.current_step > self.max_step:
+        #     reward = -1
+        #     info["reason"] = "exceed max step"
+        #     print(info)
+        #     done = True
 
-            self.rotate(transmission_time)
+        elif action not in _los:
+            reward = -1
+            info["reason"] = "NON LINE of sight"
+            # print(info)
+            done = True
 
-            self.tp = TRANSMISSION_POWER
-            self.current_satellite = (_sat_orbit, _sat_idx)
+        elif action in _los:
+            if action not in self.jump_list:
+                self.current_reward += 1
+                _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
+                # print("CP REWARD : ", _reward) # 0 ~ 28
+                self.current_reward += _reward
 
-            done = np.array_equal(self.current_satellite, self.destination_satellite)
+                transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
+            
+                self.rest_time -= transmission_time
+
+                # self.rotate(transmission_time)
+
+                self.tp = TRANSMISSION_POWER
+                self.current_satellite = (_sat_orbit, _sat_idx)
+                done = np.array_equal(self.current_satellite, self.destination_satellite)
+                # print("DONE : ", done )
+
+                # if((len(self.jump_list) != 0) and not done):
+                #     _prev_idx = self.jump_list[-1]
+                #     # print("PREV : ", _prev_idx)
+                #     # print("ACTION: ", action)
+
+                #     _prev_distance = math.sqrt((self.destination_satellite[0] - (_prev_idx // self.satellite_num)) ** 2 + (self.destination_satellite[1] - (_prev_idx % self.satellite_num))**2)
+                #     _cur_distance = math.sqrt((self.destination_satellite[0] - (action // self.satellite_num)) ** 2 + (self.destination_satellite[1] - (action % self.satellite_num))**2)
+
+                #     self.current_reward += (1 / (_prev_distance - _cur_distance))
+
+                self.jump_list.append(action)
 
             if(done):
                 info['reason'] = 'FINISH'
-                reward = 10*self.current_reward / (self.current_step+1)
-                print("#####################################################")
-                print("Reward : ", reward)
-                print("#####################################################")
-            # else:
-                # print("CURRENT SAT : ", self.source_satellite)
-                # print("DEST SAT : ", self.destination_satellite)
-            self.current_step +=1
-        else:
-            # print("#####################################################")
-            # print(self.los())
-            # print(action)
-            # print("#####################################################")
-            reward = -10
-            info["reason"] = "NON LINE of sight"
-            done = True
-
-        if self.rest_time < 0:
-            reward = -10
-            info['reason'] = "TIME OUT"
-            done = True
-
-        if self.current_step > self.max_step:
-            reward = -10
-            info["reason"] = "exceed max step"
-            done = True
-
+                reward = 10 * self.current_reward / (self.current_step)
+                # reward = 10
+                # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+                # print("Reward : ", reward)
+                # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         if done:
-            print("SRC : ", self.source_satellite)
-            print("CURRENT : ", self.current_satellite)
-            print("DEST : ", self.destination_satellite)
-            print("JUMP LIST : ", self.jump_list)
             print(info)
 
         return reward, done, info
@@ -176,8 +185,10 @@ class CircularOrbit:
                                                orbits = self.orbits)
 
         # relative_velocity = get_relative_velocity_list(self.get_current_satellite(), self.orbits, self.los_list)
-        # self.los_propagation_angle_list = get_propagation_angle_list(self.get_current_satellite(), self.orbits, self.los_list)
-        # _distance_list = get_distance_list(self.get_current_satellite(), self.orbits)
+        self.los_propagation_angle_list = get_propagation_angle_list(self.get_current_satellite(), self.orbits, self.los_list)
+        _distance_list = get_distance_list(self.get_current_satellite(), self.orbits)
+        
+        # _pos_list = self.get_pos_list()
         
         _flatten = np.array([])
         # _src_sat_flatten = np.array(self.current_satellite)
@@ -191,11 +202,14 @@ class CircularOrbit:
         _los_list = np.array(self.los_list).flatten()
         _flatten = np.concatenate([_flatten, _los_list])
 
-        # _dist_list = np.array(_distance_list).flatten()
-        # _flatten = np.concatenate([_flatten, _dist_list])
+        _dist_list = np.array(_distance_list).flatten()
+        _flatten = np.concatenate([_flatten, _dist_list])
 
-        # _prop_angle_list = np.array(self.los_propagation_angle_list).flatten()
-        # _flatten = np.concatenate([_flatten, _prop_angle_list])
+        # _vel_list = np.array(relative_velocity).flatten()
+        # _flatten = np.concatenate([_flatten, _vel_list])
+
+        _prop_angle_list = np.array(self.los_propagation_angle_list).flatten()
+        _flatten = np.concatenate([_flatten, _prop_angle_list])
         
         _length = len(_flatten)
         return _flatten
