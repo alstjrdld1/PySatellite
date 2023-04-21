@@ -84,7 +84,7 @@ class CircularOrbit:
         return math.log(1 + (_cp / tp)) / (1+_transmission_time)
 
     def step(self, action:int):
-        self.plot()
+        # self.plot()
         _tp = TRANSMISSION_POWER
 
         if(type(action) == np.ndarray):
@@ -131,7 +131,7 @@ class CircularOrbit:
 
         elif action in _los:
             if action not in self.jump_list:
-                self.current_reward += 1
+                # self.current_reward += 1
                 _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
                 # print("CP REWARD : ", _reward) # 0 ~ 28
                 self.current_reward += _reward
@@ -161,7 +161,7 @@ class CircularOrbit:
 
             if(done):
                 info['reason'] = 'FINISH'
-                reward = 10 * self.current_reward / (self.current_step)
+                reward = 10 * self.current_reward / self.current_step
                 # reward = 10
                 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 # print("Reward : ", reward)
@@ -184,7 +184,7 @@ class CircularOrbit:
                                                dstsat = self.get_satellite(self.destination_satellite[0], self.destination_satellite[1]),
                                                orbits = self.orbits)
 
-        # relative_velocity = get_relative_velocity_list(self.get_current_satellite(), self.orbits, self.los_list)
+        relative_velocity = get_relative_velocity_list(self.get_current_satellite(), self.orbits, self.los_list)
         self.los_propagation_angle_list = get_propagation_angle_list(self.get_current_satellite(), self.orbits, self.los_list)
         _distance_list = get_distance_list(self.get_current_satellite(), self.orbits)
         
@@ -205,8 +205,8 @@ class CircularOrbit:
         _dist_list = np.array(_distance_list).flatten()
         _flatten = np.concatenate([_flatten, _dist_list])
 
-        # _vel_list = np.array(relative_velocity).flatten()
-        # _flatten = np.concatenate([_flatten, _vel_list])
+        _vel_list = np.array(relative_velocity).flatten()
+        _flatten = np.concatenate([_flatten, _vel_list])
 
         _prop_angle_list = np.array(self.los_propagation_angle_list).flatten()
         _flatten = np.concatenate([_flatten, _prop_angle_list])
