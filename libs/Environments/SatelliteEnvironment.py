@@ -87,8 +87,6 @@ class CircularOrbit:
         # self.plot()
         _tp = TRANSMISSION_POWER
 
-        if(type(action) == np.ndarray):
-            action = action[0][0]
         try:
             _sat_orbit, _sat_idx = self.set_action(action)
         except:
@@ -274,7 +272,7 @@ class CircularOrbit:
         except:
             pass
 
-        earth = plt.Circle((0,0), R / R, facecolor='blue', edgecolor='black')
+        earth = plt.Circle((0,0), R / R, facecolor='black', edgecolor='black')
         plt.gca().add_patch(earth)
 
         x = []
@@ -290,8 +288,11 @@ class CircularOrbit:
 
         plt.plot(x, y, 'ro', color = 'gray')
 
+        src_sat =  self.get_satellite(self.source_satellite[0], self.source_satellite[1])
+        plt.plot(src_sat.get_position()[0] / R, src_sat.get_position()[1] / R, marker='o', color='orange')
+
         current_sat = self.get_current_satellite()
-        plt.plot(current_sat.get_position()[0] / R, current_sat.get_position()[1] / R, marker='o', color='orange')
+        plt.plot(current_sat.get_position()[0] / R, current_sat.get_position()[1] / R, marker='o', color='blue')
 
         dest_sat = self.get_destination_satellite()
         plt.plot(dest_sat.get_position()[0] / R, dest_sat.get_position()[1] / R, marker='o', color='green')

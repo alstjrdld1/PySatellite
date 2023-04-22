@@ -174,7 +174,7 @@ def is_line_of_sight(ac1: AirCraft, ac2: AirCraft) -> bool:
     _angle = get_angle(_x1, _y1, _x2, _y2)
 
     # print("MINIMUM ANGLE => ", _minimum_angle, "CURRENT ANGLE => ", _angle)
-    if(abs(_angle) < 0.001 and get_distance(ac1, ac2) < R):
+    if(abs(_angle) < 0.001 and 1e5*get_distance(ac1, ac2) < R):
         return True
     
     return abs(_angle) > _minimum_angle

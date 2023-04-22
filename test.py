@@ -18,8 +18,19 @@ for env_num in env_nums:
     env = CircularOrbitEnv(satellite_num=env_num)
     loaded_model = PPO.load("D:/pySatellite/ptfiles/" + pt_files[env_num])
     obs = env.reset()
+    env.render()
 
     while True:
         action, _states = loaded_model.predict(obs, deterministic=True)
-        obs, rewards, dones, info = env.step(action)
+
+        print("ACTION :  ", action)
+
+        if(action not in env.orbit.los()):
+            continue
+
+        obs, rewards, done, info = env.step(action)
+        if done:
+            break
+
         env.render()
+    
