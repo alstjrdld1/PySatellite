@@ -1,24 +1,13 @@
 import gym
 from libs.Environments.CircularOrbitEnv import *
 
-from stable_baselines3 import A2C, DQN, DDPG, PPO
+while True:
+    env = CircularOrbitEnv(satellite_num=8)
+    env.reset()
+    env.render(5)
 
-from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.env_checker import check_env
-import time
-
-env_nums = [8, 12]
-
-pt_files = { 
-            #  4  : 'PPO_Circular_Satellite_num_4',
-            #  5  : 'PPO_Circular_Satellite_num_5',
-             8  : 'PPO_Circular_Satellite_num_8',
-            #  10 : 'PPO_Circular_Satellite_num_10',
-             12 : 'PPO_Circular_Satellite_num_12'}
 
 for env_num in env_nums:
-    env = CircularOrbitEnv(satellite_num=env_num)
-    loaded_model = PPO.load("D:/workspace/Minseok/pySatellite/ptfiles/" + pt_files[env_num])
     obs = env.reset()
     _dest = env.orbit.destination_satellite
 

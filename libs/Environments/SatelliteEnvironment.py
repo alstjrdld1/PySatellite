@@ -237,6 +237,10 @@ class CircularOrbit:
         except Exception as e: 
             print(e)
             raise
+
+    def get_satellite_by_sid(self, sid) -> Satellite:
+        _layer, _idx = self.set_action(sid)
+        return self.get_satellite(_layer, _idx)
     
     def rotate(self, t) -> None:
         for orbit_idx, orbit in enumerate(self.orbits):
@@ -278,7 +282,7 @@ class CircularOrbit:
         earth = plt.Circle((0,0), R / R, facecolor='black', edgecolor='black')
         plt.gca().add_patch(earth)
         time.sleep(1)
-
+        
         x = []
         y = [] 
         z = []
@@ -291,6 +295,10 @@ class CircularOrbit:
                 z.append(_sat_z / R)
 
         plt.plot(x, y, 'ro', color = 'gray')
+
+        for cand in self.los():
+            cand_sat = self.get_satellite_by_sid(cand)
+            plt.plot(cand_sat.get_position()[0] / R, cand_sat.get_position()[1] / R, marker='o', color='purple')
 
         src_sat =  self.get_satellite(self.source_satellite[0], self.source_satellite[1])
         plt.plot(src_sat.get_position()[0] / R, src_sat.get_position()[1] / R, marker='o', color='orange')
