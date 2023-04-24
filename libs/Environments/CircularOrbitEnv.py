@@ -31,8 +31,8 @@ class CircularOrbitEnv(gym.Env):
         reward, done, info = self.orbit.step(action)
         return self.orbit.get_state(), reward, done, info
 
-    def render(self, mode='human'):
-        self.orbit.plot()
+    def render(self, time=1):
+        self.orbit.plot(time)
 
     def close(self):
         pass

@@ -6,12 +6,26 @@ from stable_baselines3 import A2C, DQN, DDPG, PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.env_checker import check_env
 
+import sys 
+
 sat_num = 16
-# gamma = 0.92
-# gamma = 0.9999999 # sat 4
-# gamma = 0.983 # sat 6
-# gamma = 0.946 # sat 10
-gamma = 0.88 # sat 16
+
+if len(sys.argv) != 2:
+    sys.exit()
+else:
+    sat_num = int(sys.argv[1])
+    
+print(sat_num)
+
+gamma_map = {
+    4   :   0.999,
+    6   :   0.983,
+    8   :   0.91,
+    10  :   0.905,
+    12  :   0.90 ,
+    16  :   0.89
+}
+gamma = gamma_map[sat_num]
 
 n_step = 10
 
@@ -19,7 +33,7 @@ env = CircularOrbitEnv(
     satellite_num=sat_num
 )
 
-check_env(env)
+check_env(env) 
 policy_kwargs = dict(net_arch=dict(pi=[128, 128], vf=[256, 256]))
 # model = A2C("MlpPolicy", env, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log="./logs/", learning_rate=utilities.custom_lr_schedule, n_steps=64, gamma=0.0)
 
@@ -41,4 +55,4 @@ model = PPO("MlpPolicy",
 
 model.learn(total_timesteps=1000000)
 
-model.save(f"A2C_Circular_Satellite_num_{sat_num}_gamma_{gamma}_maxstep_50")
+model.save(f"PPO_Satellite_num_{sat_num}_gamma_{gamma}_maxStep_{sat_num}")

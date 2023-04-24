@@ -25,8 +25,8 @@ class CircularOrbit:
         self.orbit_altitude_list = orbit_alts
 
         self.current_step = 0
-        # self.max_step = int(satellite_num / 2)
-        self.max_step = 10
+        self.max_step = satellite_num
+        # self.max_step = 10
         # self.max_step = 50
         self.current_reward = 0
 
@@ -67,6 +67,10 @@ class CircularOrbit:
     def get_reward(self, tp: float, sat: tuple):
         _sat_orbit, _sat_idx = sat
 
+        if((self.get_current_satellite().get_position()[0] == _sat_orbit) and 
+           (self.get_current_satellite().get_position()[1] == _sat_idx)):
+            return 0
+        
         _target_sat = self.get_satellite(_sat_orbit, _sat_idx)
         _dist = get_distance(self.get_current_satellite(), _target_sat)
         _dist = _dist * 1e5
@@ -81,7 +85,7 @@ class CircularOrbit:
         
         _transmission_time = propagation_latency(self.get_current_satellite(), _target_sat)
         
-        return math.log(1 + (_cp / tp)) / (1+_transmission_time)
+        return math.log(_cp / tp)
 
     def step(self, action:int):
         # self.plot()
@@ -108,6 +112,12 @@ class CircularOrbit:
         # print("LOS LIST : ", _los)
         # print("ACTION : ",  _sat_orbit, _sat_idx, action)
         # print("#####################################################")
+        
+        # if self.current_step > self.max_step:
+            # reward = -1
+            # info["reason"] = "exceed max step"
+            # print(info)
+            # done = True
 
         if self.rest_time < 0:
             reward = -1
@@ -115,30 +125,26 @@ class CircularOrbit:
             print(info)
             done = True
 
-        # elif self.current_step > self.max_step:
-        #     reward = -1
-        #     info["reason"] = "exceed max step"
-        #     print(info)
-        #     done = True
-
-        elif action not in _los:
+        if action not in _los:
             reward = -1
             info["reason"] = "NON LINE of sight"
             # print(info)
             done = True
 
-        elif action in _los:
+        if action in _los:
             if action not in self.jump_list:
-                # self.current_reward += 1
-                _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
-                # print("CP REWARD : ", _reward) # 0 ~ 28
-                self.current_reward += _reward
+                if self.current_step > self.max_step:
+                    self.current_reward -= 1
+                else:
+                    _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
+                    # print("CP REWARD : ", _reward) # 0 ~ 28
+                    self.current_reward += _reward
 
                 transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
             
                 self.rest_time -= transmission_time
 
-                # self.rotate(transmission_time)
+                self.rotate(transmission_time)
 
                 self.tp = TRANSMISSION_POWER
                 self.current_satellite = (_sat_orbit, _sat_idx)
@@ -159,7 +165,8 @@ class CircularOrbit:
 
             if(done):
                 info['reason'] = 'FINISH'
-                reward = 10 * self.current_reward / self.current_step
+                # reward = 10 * self.current_reward / self.current_step
+                reward = 10 * self.current_reward
                 # reward = 10
                 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 # print("Reward : ", reward)
@@ -266,14 +273,11 @@ class CircularOrbit:
         
         return _los
     
-    def plot(self) -> None:
-        try:
-            plt.clf()
-        except:
-            pass
-
+    def plot(self, wtime = 1) -> None:
+        import time
         earth = plt.Circle((0,0), R / R, facecolor='black', edgecolor='black')
         plt.gca().add_patch(earth)
+        time.sleep(1)
 
         x = []
         y = [] 
@@ -298,4 +302,8 @@ class CircularOrbit:
         plt.plot(dest_sat.get_position()[0] / R, dest_sat.get_position()[1] / R, marker='o', color='green')
 
         plt.axis('equal')
-        plt.show()
+        plt.show(block=False)
+
+        plt.pause(wtime)
+
+        plt.close()
