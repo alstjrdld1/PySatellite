@@ -6,9 +6,13 @@ from stable_baselines3 import A2C, DQN, DDPG, PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.env_checker import check_env
 
-sat_num = 10
+sat_num = 16
 # gamma = 0.92
-gamma = 0.91
+# gamma = 0.9999999 # sat 4
+# gamma = 0.983 # sat 6
+# gamma = 0.946 # sat 10
+gamma = 0.88 # sat 16
+
 n_step = 10
 
 env = CircularOrbitEnv(
