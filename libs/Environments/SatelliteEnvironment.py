@@ -25,10 +25,8 @@ class CircularOrbit:
         self.orbit_altitude_list = orbit_alts
 
         self.current_step = 0
-        self.max_step = satellite_num
-        # self.max_step = 10
-        # self.max_step = 50
         self.current_reward = 0
+        self.max_step = satellite_num
 
         self.reset()
 
@@ -41,7 +39,7 @@ class CircularOrbit:
 
         for altitude in self.orbit_altitude_list:
             i_th_orbit = []
-
+            
             locations = get_points_on_earth(R + altitude, self.satellite_num)
             # velocities = get_velocities_on_earth(locations)
 
@@ -149,24 +147,17 @@ class CircularOrbit:
                 self.tp = TRANSMISSION_POWER
                 self.current_satellite = (_sat_orbit, _sat_idx)
                 done = np.array_equal(self.current_satellite, self.destination_satellite)
-                # print("DONE : ", done )
-
-                # if((len(self.jump_list) != 0) and not done):
-                #     _prev_idx = self.jump_list[-1]
-                #     # print("PREV : ", _prev_idx)
-                #     # print("ACTION: ", action)
-
-                #     _prev_distance = math.sqrt((self.destination_satellite[0] - (_prev_idx // self.satellite_num)) ** 2 + (self.destination_satellite[1] - (_prev_idx % self.satellite_num))**2)
-                #     _cur_distance = math.sqrt((self.destination_satellite[0] - (action // self.satellite_num)) ** 2 + (self.destination_satellite[1] - (action % self.satellite_num))**2)
-
-                #     self.current_reward += (1 / (_prev_distance - _cur_distance))
 
                 self.jump_list.append(action)
 
             if(done):
                 info['reason'] = 'FINISH'
                 # reward = 10 * self.current_reward / self.current_step
-                reward = 10 * self.current_reward
+                # reward = 10 * self.current_reward 
+                if self.current_step > self.max_step:
+                    reward = 10 * self.current_reward * (0.95**(self.current_step))
+                else:
+                    reward = 10 * self.current_reward * (0.995**(self.current_step))
                 # reward = 10
                 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 # print("Reward : ", reward)
@@ -196,13 +187,6 @@ class CircularOrbit:
         # _pos_list = self.get_pos_list()
         
         _flatten = np.array([])
-        # _src_sat_flatten = np.array(self.current_satellite)
-        # _flatten = np.concatenate([_flatten, _src_sat_flatten])
-
-        # _dst_sat_flatten = np.array(self.destination_satellite)
-        # _flatten = np.concatenate([_flatten, _dst_sat_flatten])
-
-        # np.append(_flatten, self.rest_time)
 
         _los_list = np.array(self.los_list).flatten()
         _flatten = np.concatenate([_flatten, _los_list])
