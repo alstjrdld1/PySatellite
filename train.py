@@ -54,6 +54,6 @@ model = PPO("MlpPolicy",
             learning_rate=0.00003,
             )
 
-model.learn(total_timesteps=1000000)
+model.learn(total_timesteps=10000000)
 
 model.save(f"PPO_Satellite_num_{sat_num}_gamma_{gamma}_maxStep_{sat_num}_reward*0.99**current_step")

@@ -129,26 +129,31 @@ class CircularOrbit:
             # print(info)
             done = True
 
-        if action in _los:
-            if action not in self.jump_list:
-                if self.current_step > self.max_step:
-                    self.current_reward -= 1
-                else:
-                    _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
-                    # print("CP REWARD : ", _reward) # 0 ~ 28
-                    self.current_reward += _reward
+        if action in self.jump_list:
+            reward = -1
+            info["reason"] = "Jump Again"
+            # print(info)
+            done = True
 
-                transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
-            
-                self.rest_time -= transmission_time
+        if (action in _los) and (not done):
+            if self.current_step > self.max_step:
+                self.current_reward -= 1
+            else:
+                _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
+                # print("CP REWARD : ", _reward) # 0 ~ 28
+                self.current_reward += _reward
 
-                self.rotate(transmission_time)
+            transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
+        
+            self.rest_time -= transmission_time
 
-                self.tp = TRANSMISSION_POWER
-                self.current_satellite = (_sat_orbit, _sat_idx)
-                done = np.array_equal(self.current_satellite, self.destination_satellite)
+            self.rotate(transmission_time)
 
-                self.jump_list.append(action)
+            self.tp = TRANSMISSION_POWER
+            self.current_satellite = (_sat_orbit, _sat_idx)
+            done = np.array_equal(self.current_satellite, self.destination_satellite)
+
+            self.jump_list.append(action)
 
             if(done):
                 info['reason'] = 'FINISH'
@@ -162,6 +167,7 @@ class CircularOrbit:
                 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 # print("Reward : ", reward)
                 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        
         if done:
             print(info)
 
