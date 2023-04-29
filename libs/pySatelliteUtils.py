@@ -164,12 +164,16 @@ def get_angle(x1, y1, x2, y2) -> float:
     return degree
 
 def is_line_of_sight(ac1: AirCraft, ac2: AirCraft) -> bool:
+
     _alt = ac1.get_altitude()
     _theta = math.asin( R / _alt)
     _minimum_angle = (_theta * 180) / PI
     
     _x1, _y1 = ac1.get_position()[:2]
     _x2, _y2 = ac2.get_position()[:2]
+    
+    if((_x1 == _x2) and (_y1 == _y2)):
+        return False
 
     _angle = get_angle(_x1, _y1, _x2, _y2)
 

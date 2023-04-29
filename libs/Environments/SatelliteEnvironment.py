@@ -25,10 +25,8 @@ class CircularOrbit:
         self.orbit_altitude_list = orbit_alts
 
         self.current_step = 0
-        self.max_step = satellite_num
-        # self.max_step = 10
-        # self.max_step = 50
         self.current_reward = 0
+        self.max_step = satellite_num
 
         self.reset()
 
@@ -41,7 +39,7 @@ class CircularOrbit:
 
         for altitude in self.orbit_altitude_list:
             i_th_orbit = []
-
+            
             locations = get_points_on_earth(R + altitude, self.satellite_num)
             # velocities = get_velocities_on_earth(locations)
 
@@ -131,46 +129,45 @@ class CircularOrbit:
             # print(info)
             done = True
 
-        if action in _los:
-            if action not in self.jump_list:
-                if self.current_step > self.max_step:
-                    self.current_reward -= 1
-                else:
-                    _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
-                    # print("CP REWARD : ", _reward) # 0 ~ 28
-                    self.current_reward += _reward
+        if action in self.jump_list:
+            reward = -1
+            info["reason"] = "Jump Again"
+            # print(info)
+            done = True
 
-                transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
-            
-                self.rest_time -= transmission_time
+        if (action in _los) and (not done):
+            if self.current_step > self.max_step:
+                self.current_reward -= 1
+            else:
+                _reward = self.get_reward(tp = _tp, sat=(_sat_orbit, _sat_idx))
+                # print("CP REWARD : ", _reward) # 0 ~ 28
+                self.current_reward += _reward
 
-                self.rotate(transmission_time)
+            transmission_time = propagation_latency(self.get_current_satellite(), _target_satellite)
+        
+            self.rest_time -= transmission_time
 
-                self.tp = TRANSMISSION_POWER
-                self.current_satellite = (_sat_orbit, _sat_idx)
-                done = np.array_equal(self.current_satellite, self.destination_satellite)
-                # print("DONE : ", done )
+            self.rotate(transmission_time)
 
-                # if((len(self.jump_list) != 0) and not done):
-                #     _prev_idx = self.jump_list[-1]
-                #     # print("PREV : ", _prev_idx)
-                #     # print("ACTION: ", action)
+            self.tp = TRANSMISSION_POWER
+            self.current_satellite = (_sat_orbit, _sat_idx)
+            done = np.array_equal(self.current_satellite, self.destination_satellite)
 
-                #     _prev_distance = math.sqrt((self.destination_satellite[0] - (_prev_idx // self.satellite_num)) ** 2 + (self.destination_satellite[1] - (_prev_idx % self.satellite_num))**2)
-                #     _cur_distance = math.sqrt((self.destination_satellite[0] - (action // self.satellite_num)) ** 2 + (self.destination_satellite[1] - (action % self.satellite_num))**2)
-
-                #     self.current_reward += (1 / (_prev_distance - _cur_distance))
-
-                self.jump_list.append(action)
+            self.jump_list.append(action)
 
             if(done):
                 info['reason'] = 'FINISH'
                 # reward = 10 * self.current_reward / self.current_step
-                reward = 10 * self.current_reward
+                # reward = 10 * self.current_reward 
+                if self.current_step > self.max_step:
+                    reward = 10 * self.current_reward * (0.95**(self.current_step))
+                else:
+                    reward = 10 * self.current_reward * (0.995**(self.current_step))
                 # reward = 10
                 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 # print("Reward : ", reward)
                 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        
         if done:
             print(info)
 
@@ -196,13 +193,6 @@ class CircularOrbit:
         # _pos_list = self.get_pos_list()
         
         _flatten = np.array([])
-        # _src_sat_flatten = np.array(self.current_satellite)
-        # _flatten = np.concatenate([_flatten, _src_sat_flatten])
-
-        # _dst_sat_flatten = np.array(self.destination_satellite)
-        # _flatten = np.concatenate([_flatten, _dst_sat_flatten])
-
-        # np.append(_flatten, self.rest_time)
 
         _los_list = np.array(self.los_list).flatten()
         _flatten = np.concatenate([_flatten, _los_list])

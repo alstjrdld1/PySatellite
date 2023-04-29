@@ -14,23 +14,24 @@ if len(sys.argv) != 2:
     sys.exit()
 else:
     sat_num = int(sys.argv[1])
-    
+
 print(sat_num)
 
 gamma_map = {
-    4   :   0.999,
-    6   :   0.983,
+    4   :   0.97,
+    6   :   0.96,
     8   :   0.91,
     10  :   0.905,
     12  :   0.90 ,
-    16  :   0.89
+    16  :   0.898
 }
 gamma = gamma_map[sat_num]
 
 n_step = 10
 
 env = CircularOrbitEnv(
-    satellite_num=sat_num
+    satellite_num=sat_num,
+    orbit_alts=[400,1000]
 )
 
 check_env(env) 
@@ -53,6 +54,6 @@ model = PPO("MlpPolicy",
             learning_rate=0.00003,
             )
 
-model.learn(total_timesteps=1000000)
+model.learn(total_timesteps=10000000)
 
-model.save(f"PPO_Satellite_num_{sat_num}_gamma_{gamma}_maxStep_{sat_num}")
+model.save(f"PPO_Satellite_num_{sat_num}_gamma_{gamma}_maxStep_{sat_num}_reward*0.99**current_step")
