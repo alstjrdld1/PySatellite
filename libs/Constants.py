@@ -1,4 +1,5 @@
 import os 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 try:
     import numpy as np
@@ -37,9 +38,23 @@ TEMPERATURE = 300            # K
 PI = np.pi
 G = 6.6743e-11               # gravitational constant, m^3/(kg s^2)
 M = 5.972e24                 # mass of Earth, kg
-R = 6371000                  # radius of Earth, m
+# R = 6371000                  # radius of Earth, m
+R = 6371                  # radius of Earth, km
 C = 3e9                      # m/s
 BOLTZMAN_CONSTANT = 1.38e-23 # J/K
+
+##### 3D Simulation 
+# 좌표를 생성하기 위한 각도 범위 설정
+E_PHI = np.linspace(0, PI, 100)
+E_THETA = np.linspace(0, 2 * PI, 100)
+
+# 각도를 좌표로 변환
+E_PHI, E_THETA = np.meshgrid(E_PHI, E_THETA)
+
+# 구의 좌표를 계산
+EARTH_3D_X = R * np.sin(E_PHI) * np.cos(E_THETA)
+EARTH_3D_Y = R * np.sin(E_PHI) * np.sin(E_THETA)
+EARTH_3D_Z = R * np.cos(E_PHI)
 
 ##### FOR DRL 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

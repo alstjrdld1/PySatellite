@@ -2,7 +2,8 @@ import gym
 from libs.Environments.CircularOrbitEnv import *
 
 while True:
-    env = CircularOrbitEnv(satellite_num=8)
+    env = CircularOrbitEnv(satellite_num=8,
+                           orbit_alts=[400, 1000])
     env.reset()
     env.render(5)
 
