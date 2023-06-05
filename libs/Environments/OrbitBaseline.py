@@ -16,7 +16,7 @@ class OrbitBaseLine:
         self.orbit_altitude_list.sort() # Orbit sort into 100, 200, 300 
 
         for idx, alt in enumerate(self.orbit_altitude_list): 
-            self.orbit_altitude_list[idx] = alt * 1000 # Km to meter
+            self.orbit_altitude_list[idx] = alt # Km to meter
 
         self.source_satellite = (0, 0)
         self.current_satellite = (0, 0)

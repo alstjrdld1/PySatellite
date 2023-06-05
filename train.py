@@ -1,5 +1,5 @@
 import gym
-from libs.Environments.CircularOrbitEnv import *
+from libs.Environments.Thesis_train import *
 
 from stable_baselines3 import A2C, DQN, DDPG, PPO
 
@@ -10,10 +10,10 @@ import sys
 
 sat_num = 16
 
-if len(sys.argv) != 2:
-    sys.exit()
-else:
-    sat_num = int(sys.argv[1])
+# if len(sys.argv) != 2:
+#     sys.exit()
+# else:
+#     sat_num = int(sys.argv[1])
 
 print(sat_num)
 
@@ -29,9 +29,10 @@ gamma = gamma_map[sat_num]
 
 n_step = 10
 
-env = CircularOrbitEnv(
+env = GymThesisEnv(
     satellite_num=sat_num,
-    orbit_alts=[400,1000]
+    orbit_alts=[600,1000],
+    ground_user_num=1
 )
 
 check_env(env) 

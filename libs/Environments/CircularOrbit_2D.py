@@ -6,6 +6,13 @@ import time
 from libs.pySatelliteUtils import *
 from libs.Environments.OrbitBaseline import *
 
+# from astropy import units as u
+
+# from poliastro.bodies import Earth, Mars, Sun
+# from poliastro.twobody import Orbit
+
+# from poliastro.plotting import OrbitPlotter2D
+
 class CircularOrbit_2D(OrbitBaseLine, ABC):
     def __init__(self,
                  satellite_num: int = 8,
@@ -53,8 +60,16 @@ class CircularOrbit_2D(OrbitBaseLine, ABC):
 
                 _alt = sat.get_altitude()
                 _ang = sat.get_current_angle()
-                _anv = sat.get_angular_velocity()
-                _rot_ang = _ang+_anv*t
+                # _vel = sat.get_velocity()
+                # _abs_vel = math.sqrt(_vel[0] ** 2 + _vel[1] ** 2 + _vel[2]**2)  # v
+                
+                _abs_vel = sat.get_velocity_mag()  # v
+                _arc_length = _abs_vel * t # arc lenght = v * t
+                _rot_ang = _arc_length / _alt # arc length =  r * theta  --> theta = arc length / r
+                _rot_ang = _ang + _rot_ang
+
+                # _anv = sat.get_angular_velocity()
+                # _rot_ang = _ang+_anv*t
 
                 if(_rot_ang > (2 * PI)):
                     _rot_ang = _rot_ang - (2*PI)
@@ -69,60 +84,57 @@ class CircularOrbit_2D(OrbitBaseLine, ABC):
                 # print("AFTER ROTATE: ", self.orbits[orbit_idx][sat_idx].get_position())
                 # print("##############################################################")
 
-    # def plot(self, wtime: float = 1) -> None:
-    #     earth = plt.Circle((0,0), R / R, facecolor='black', edgecolor='black')
-    #     plt.gca().add_patch(earth)
-    #     time.sleep(1)
+    def plot(self, wtime: float = 1) -> None:
+        earth = plt.Circle((0,0), R / R, facecolor='black', edgecolor='black')
+        plt.gca().add_patch(earth)
+        time.sleep(1)
         
-    #     x = []
-    #     y = [] 
-    #     z = []
-    #     for orbit in self.orbits:
-    #         for sat in orbit:
-    #             # print(sat.get_position())
-    #             _sat_x, _sat_y, _sat_z = sat.get_position()
-    #             x.append(_sat_x / R)
-    #             y.append(_sat_y / R)
-    #             z.append(_sat_z / R)
-
-    #     plt.plot(x, y, 'ro', color = 'gray')
-
-    #     for cand in self.los():
-    #         cand_sat = self.get_satellite_by_sid(cand)
-    #         plt.plot(cand_sat.get_position()[0] / R, cand_sat.get_position()[1] / R, marker='o', color='purple')
-
-    #     src_sat =  self.get_satellite(self.source_satellite[0], self.source_satellite[1])
-    #     plt.plot(src_sat.get_position()[0] / R, src_sat.get_position()[1] / R, marker='o', color='orange')
-
-    #     current_sat = self.get_current_satellite()
-    #     plt.plot(current_sat.get_position()[0] / R, current_sat.get_position()[1] / R, marker='o', color='blue')
-
-    #     dest_sat = self.get_destination_satellite()
-    #     plt.plot(dest_sat.get_position()[0] / R, dest_sat.get_position()[1] / R, marker='o', color='green')
-
-    #     plt.axis('equal')
-    #     plt.show(block=False)
-    #     # plt.show()
-
-    #     plt.pause(wtime)
-
-    #     plt.close()
-
-    def plot(self) -> None:
-        from astropy import units as u
-
-        from poliastro.bodies import Earth, Mars, Sun
-        from poliastro.twobody import Orbit
-
-        from poliastro.plotting import OrbitPlotter2D
-
-        op=OrbitPlotter2D()
-
+        x = []
+        y = [] 
+        z = []
         for orbit in self.orbits:
             for sat in orbit:
                 # print(sat.get_position())
-                r = sat.get_position() << u.km
-                v = sat.get_velocity() << u.km / u.s
-                op.plot(Orbit.from_vectors(Earth, r, v))
+                _sat_x, _sat_y, _sat_z = sat.get_position()
+                x.append(_sat_x / R)
+                y.append(_sat_y / R)
+                z.append(_sat_z / R)
 
-        op.show()
+        plt.plot(x, y, 'ro', color = 'gray')
+
+        # for cand in self.los():
+        #     cand_sat = self.get_satellite_by_sid(cand)
+        #     plt.plot(cand_sat.get_position()[0] / R, cand_sat.get_position()[1] / R, marker='o', color='purple')
+        
+        src_sat =  self.get_satellite(self.source_satellite[0], self.source_satellite[1])
+        plt.plot(src_sat.get_position()[0] / R, src_sat.get_position()[1] / R, marker='o', color='orange')
+
+        # current_sat = self.get_current_satellite()
+        # plt.plot(current_sat.get_position()[0] / R, current_sat.get_position()[1] / R, marker='o', color='blue')
+
+        # dest_sat = self.get_destination_satellite()
+        # plt.plot(dest_sat.get_position()[0] / R, dest_sat.get_position()[1] / R, marker='o', color='green')
+
+        plt.axis('equal')
+        plt.show(block=False)
+        # plt.show()
+
+        plt.pause(wtime)
+
+        plt.close()
+
+    # def plot(self) -> None:
+
+    #     print("PLOT")
+    #     op=OrbitPlotter2D()
+
+    #     for orbit in self.orbits:
+    #         for sat in orbit:
+    #             # print(sat.get_position())
+    #             r = sat.get_position() << u.km
+    #             v = sat.get_velocity() << u.km / u.s
+    #             print("r : ", r)
+    #             print("v : ", v)
+    #             op.plot(Orbit.from_vectors(Earth, r, v))
+
+    #     op.show()

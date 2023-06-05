@@ -16,7 +16,7 @@ import math
 
 '''
 
-def get_distance(ac1: AirCraft, ac2: AirCraft) -> float: # Output : distance  UNIT -> [m]
+def get_distance(ac1: SimulationObject, ac2: SimulationObject) -> float: # Output : distance  UNIT -> [m]
     ac1_pos = ac1.get_position()
     ac2_pos = ac2.get_position()
     _term1 = (ac1_pos[0] - ac2_pos[0])**2
@@ -27,14 +27,15 @@ def get_distance(ac1: AirCraft, ac2: AirCraft) -> float: # Output : distance  UN
 ########################################################################################
 # ABOUT PROPAGATION START 
 ########################################################################################
-def propagation_latency(src: AirCraft, dst: AirCraft) -> float: # Output : latency time  UNIT -> [s]
+def propagation_latency(src: SimulationObject, dst: SimulationObject) -> float: # Output : latency time  UNIT -> [s]
     return 1e5 * get_distance(src, dst) / C
 
-def get_propagation_angle(src_ac: AirCraft, dst_ac: AirCraft) -> float : # Output : Radian
+def get_propagation_angle(src_ac: SimulationObject, dst_ac: SimulationObject) -> float : # Output : Radian
     src_pos = src_ac.get_position()
     dst_pos = dst_ac.get_position()
 
     _propagate_vector = (dst_pos[0] - src_pos[0], dst_pos[1] - src_pos[1], dst_pos[2] - src_pos[2])
+    # _propagate_vector = (src_pos[0] - dst_pos[0], src_pos[1] - dst_pos[1], src_pos[2] - dst_pos[2])
     # print(_propagate_vector)
     _velocity_vector = src_ac.get_velocity()
     # print(_velocity_vector)
@@ -62,12 +63,12 @@ def get_propagation_angle(src_ac: AirCraft, dst_ac: AirCraft) -> float : # Outpu
 
     return _angle
 
-def get_propagation_angle_list(dst_ac:AirCraft, sats:List[List[AirCraft]], los_list:List[List[bool]]) -> list:
+def get_propagation_angle_list(dst_ac:SimulationObject, sats:List[List[SimulationObject]], los_list:List[List[bool]]) -> list:
     _prop_angles = []    
     for orbit_idx, orbit in enumerate(los_list):
         _prop_row = []
         for sat_idx, sat_is_visible in enumerate(orbit):
-            if(sat_is_visible):
+            if(sat_is_visible == 1):
                 _prop_angle = get_propagation_angle(sats[orbit_idx][sat_idx], dst_ac)
                 _prop_row.append(_prop_angle)
             else:
@@ -110,17 +111,18 @@ def get_angular_velocity(altitude: float) -> float:
 ########################################################################################
 # ABOUT RELATIVE VELOCITY START
 ########################################################################################
-def get_relative_velocity(ac1: AirCraft, ac2: AirCraft) -> tuple:
+def get_relative_velocity(ac1: SimulationObject, ac2: SimulationObject) -> tuple:
     _v1x, _v1y, _v1z = ac1.get_velocity()
     _v2x, _v2y, _v2z = ac2.get_velocity()
-    return (_v1x - _v2x, _v1y - _v2y, _v1z - _v2z)
+    # return (_v1x - _v2x, _v1y - _v2y, _v1z - _v2z)
+    return (_v2x - _v1x, _v2y - _v1y, _v2z - _v1z)
 
-def get_relative_velocity_list(ac1: AirCraft, sats: List[List[AirCraft]], visible_list: List[List[bool]]) -> list:
+def get_relative_velocity_list(ac1: SimulationObject, sats: List[List[SimulationObject]], visible_list: List[List[bool]]) -> list:
     _rvs = []    
     for orbit_idx, orbit in enumerate(visible_list):
         _rv_row = []
         for sat_idx, is_visible in enumerate(orbit):
-            if(is_visible):
+            if(is_visible == 1):
                 _rv = get_relative_velocity(ac1, sats[orbit_idx][sat_idx])
                 _rv_row.append(_rv)
             else:
@@ -163,7 +165,7 @@ def get_angle(x1, y1, x2, y2) -> float:
     degree = theta * 180 / math.pi
     return degree
 
-def is_line_of_sight(ac1: AirCraft, ac2: AirCraft) -> bool:
+def is_line_of_sight(ac1: SimulationObject, ac2: SimulationObject) -> bool:
 
     _alt = ac1.get_altitude()
     _theta = math.asin( R / _alt)
@@ -194,8 +196,8 @@ def get_line_of_sight_list_tf(ac1: AirCraft, orbits) -> list:
         _los_orbits.append(_los_orbit)
 
     return _los_orbits
-
-def get_line_of_sight_list(ac1: AirCraft, srcsat:AirCraft, dstsat:AirCraft, orbits) -> list:
+'''
+def get_line_of_sight_list(ac1: SimulationObject, srcsat:SimulationObject, dstsat:SimulationObject, orbits) -> list:
     _los_orbits = []
     for orbit in orbits:  
         _los_orbit = []
@@ -214,9 +216,60 @@ def get_line_of_sight_list(ac1: AirCraft, srcsat:AirCraft, dstsat:AirCraft, orbi
         _los_orbits.append(_los_orbit)
 
     return _los_orbits
+'''
+
+def get_line_of_sight_list(ac1: SimulationObject, orbits) -> list:
+    _los_orbits = []
+    for orbit in orbits:  
+        _los_orbit = []
+        for sat in orbit:
+            if(is_line_of_sight(ac1, sat)):
+                _los_orbit.append(1)
+            else: 
+                _los_orbit.append(0)
+        _los_orbits.append(_los_orbit)
+
+    return _los_orbits
 ########################################################################################
 # ABOUT LINE OF SIGHT END
 ########################################################################################
+
+def get_computing_resources(los_list: list, orbits) -> list:
+    s_comp = []
+    for l, layer in enumerate(los_list):
+        layer_comp = []
+        for i, index in enumerate(layer):
+            if(los_list[l][i] == 0):
+                layer_comp.append([1, 1, 1, 1, 1])
+            else:
+                layer_comp.append(orbits[l][i].get_tasks())
+        s_comp.append(layer_comp)
+    return s_comp
+
+def calc_doppler_shift(freq, vel, theta):
+    return freq * vel * math.cos(theta) / (C/1000)
+
+def calc_doppler_shift_on_x_list(freq, rel_vels, prop_angles) -> list:
+    total = []
+    for j, layer in enumerate(prop_angles):
+        dop_layer = []
+
+        for k, prop_angle in enumerate(layer):
+            dop_layer.append(calc_doppler_shift(freq, rel_vels[j][k][0], prop_angle))
+
+        total.append(dop_layer)
+    return total
+
+def calc_doppler_shift_on_y_list(freq, rel_vels, prop_angles) -> list:
+    total = []
+    for j, layer in enumerate(prop_angles):
+        dop_layer = []
+        
+        for k, prop_angle in enumerate(layer):
+            dop_layer.append(calc_doppler_shift(freq, rel_vels[j][k][1], prop_angle))
+
+        total.append(dop_layer)
+    return total
 
 def get_distance_list(ac1: AirCraft, orbits) -> list:
     _los_orbits = []

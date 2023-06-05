@@ -49,12 +49,13 @@ class SimulationObject(ABC):
 
     def get_velocity(self) -> tuple:
         r = self.get_altitude()
-        v = math.sqrt(G * M / r)
+        r = r * 1000
 
-        _theta = math.acos(self.x / r)
-        # _phi = 90
-        self.vx = v * math.cos(_theta)
-        self.vy = v * math.sin(_theta)
+        v = math.sqrt((G * M) / r) / 1000 # -> m / s
+
+        _theta = self.get_current_angle()
+        self.vx = v * math.sin(_theta)
+        self.vy = v * math.cos(_theta)
         self.vz = 0
 
         return [self.vx, self.vy, self.vz]
@@ -83,4 +84,7 @@ class SimulationObject(ABC):
             raise "Position only have 2 or 3 dimension"
 
     def get_altitude(self) -> float:
+        print("X :", self.x)
+        print("Y :", self.y)
+        print("Z :", self.z)
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)

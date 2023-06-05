@@ -1,7 +1,7 @@
 import math
+
 from libs.Constants import *
 from libs.SimulationObject import *
-
 
 class AirCraft(SimulationObject):
     '''
@@ -25,13 +25,16 @@ class AirCraft(SimulationObject):
     
 class Satellite(AirCraft):
     def __init__(self,
-                 pos: tuple = (0,0,0),
-                 velocity: tuple = (0,0,0),
-                 mass: int = 0):
+                 pos:       tuple = (0,0,0),
+                 velocity:  tuple = (0,0,0),
+                 mass:      int = 0,
+                 task_num : int = 5):
         super().__init__(pos, velocity, mass)
 
-        self.tasks = [0, 0, 0, 0, 0, 0] # 0 -> Empty 1 -> Ocuupied
-    
+        self.tasks = [0 for i in range(task_num)] # 0 -> Empty 1 -> Ocuupied
+
+    def get_tasks(self):
+        return self.tasks
 
 class UAV(AirCraft):
     def __init__(self,

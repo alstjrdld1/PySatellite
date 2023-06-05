@@ -6,6 +6,6 @@ env = Circular_GU_Sat(
     ground_user_num=1
 )
 
-while True:
-    env.plot()
-    env.rotate(24*60*60)
+print("ENV DONE")
+env.plot()
+# env.rotate(24*60*60)

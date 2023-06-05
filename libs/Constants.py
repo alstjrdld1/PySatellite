@@ -12,8 +12,9 @@ except:
     os.system("pip install torch")
 
 DATA_AMOUNT = 0
-BAND_WIDTH = 50e9 # Hz GHz = 1e9
-FREQUENCY = 340e9 # Hz GHz = 1e9
+# BAND_WIDTH = 50e9 # Hz GHz = 1e9
+BAND_WIDTH = 1e9 # Hz GHz = 1e9
+FREQUENCY = 3e9 # Hz GHz = 1e9
 MAXIMUM_TIME = 5 # s
 EARTH_CENTER_LOC = (0,0,0)
 
@@ -43,6 +44,10 @@ R = 6371                  # radius of Earth, km
 C = 3e9                      # m/s
 BOLTZMAN_CONSTANT = 1.38e-23 # J/K
 
+EARTH_ROTATE_PERIOD = 24 * 60 * 60 # second
+EARTH_ANGULAR_VELOCITY = 2 * PI / EARTH_ROTATE_PERIOD # rad/s
+EARTH_SURFACE_ROTATE_SPEED = 1670 / (60 * 60) # km/s
+
 ##### 3D Simulation 
 # 좌표를 생성하기 위한 각도 범위 설정
 E_PHI = np.linspace(0, PI, 100)
@@ -55,6 +60,8 @@ E_PHI, E_THETA = np.meshgrid(E_PHI, E_THETA)
 EARTH_3D_X = R * np.sin(E_PHI) * np.cos(E_THETA)
 EARTH_3D_Y = R * np.sin(E_PHI) * np.sin(E_THETA)
 EARTH_3D_Z = R * np.cos(E_PHI)
+
+
 
 ##### FOR DRL 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
