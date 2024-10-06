@@ -33,7 +33,7 @@ RECEIVER_ANTENNA_GAIN           = 2 # dBi
 ADDITIONAL_NOISE_RECEIVER       = 5 # dB
 
 #### SPACE CONDITION 
-TEMPERATURE = 300            # K
+TEMPERATURE = 288            # K
 
 #### SCIENTIFIC CONSTANTS
 PI = np.pi
@@ -60,8 +60,6 @@ E_PHI, E_THETA = np.meshgrid(E_PHI, E_THETA)
 EARTH_3D_X = R * np.sin(E_PHI) * np.cos(E_THETA)
 EARTH_3D_Y = R * np.sin(E_PHI) * np.sin(E_THETA)
 EARTH_3D_Z = R * np.cos(E_PHI)
-
-
 
 ##### FOR DRL 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

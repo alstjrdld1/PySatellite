@@ -48,6 +48,14 @@ class Circular_GU_Sat(CircularOrbit_2D):
 
             self.orbits.append(i_th_orbit)
         
+        for gu in self.orbits[0]:
+            distance = np.Inf
+            for j, layer in enumerate(self.orbits[1:]):
+                for k, sat in enumerate(layer):
+                    dist = get_distance(gu, sat)
+                    if(dist < distance):
+                        distance = dist
+                        gu.connected_sat = (j,k)
         
     def calc_relative_velocities(self):
         _gus = self.orbits[0]
@@ -57,7 +65,7 @@ class Circular_GU_Sat(CircularOrbit_2D):
             for i_sats in _sats:
                 for sat in i_sats:
                     if(is_line_of_sight(gu, sat)):
-                        _relative_vel = gu.calc_relative_velocity(sat)
+                        _relative_vel = get_relative_velocity(gu, sat)
                         return _relative_vel
                     else:
                         return None

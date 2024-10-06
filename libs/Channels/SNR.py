@@ -42,7 +42,7 @@ def get_snr_fspl_doppler(distance,
                          transmitter_gain   = TRANSMITTER_ANTENNA_GAIN, 
                          receiver_gain      = RECEIVER_ANTENNA_GAIN, 
                          noise_figure       = ADDITIONAL_NOISE_RECEIVER,
-                         velocity           = 0,
+                         velocity           = 1,
                          angle              = 0):
     
     # Convert input to linear scale
@@ -52,14 +52,15 @@ def get_snr_fspl_doppler(distance,
     noise_figure_lin = 10 ** (noise_figure / 10)
 
     # Calculate free space path loss (FSPL)
-    fspl = FSPL_doppler(distance, frequency, velocity, angle) # dB
-    if(fspl == 0):
-        fspl = 1
+    fspl = FSPL_doppler(distance, frequency, velocity, angle) # dB 
+    # if(fspl == 0):
+    #     fspl = 1
 
     # Atmospheric Attenuation 
     aa = atmospheric_attenuation(frequency) * distance # dB
 
     l_tot = fspl + aa
+    # l_tot = fspl
     # print("L tot : ", l_tot)
 
     # Calculate received power (linear scale)

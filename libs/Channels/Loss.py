@@ -12,7 +12,7 @@ def FSPL_doppler(distance, frequency, relative_velocity, angle):
         print("Frequency : ", frequency, "Relative Velocity : ", relative_velocity, "Angle : ", angle)
         raise
 
-def atmospheric_attenuation(frequency = 2.4e9, temperature = 25.0, pressure = 1013.25, humidity = 50.0):
+def atmospheric_attenuation(frequency = 2.4e9, temperature = 25.0, pressure = 1013.25, humidity = 50.0, elevation_angle = 0.0):
     """
     Calculate atmospheric attenuation using ITU-R P.676-11 model.
     
@@ -27,6 +27,7 @@ def atmospheric_attenuation(frequency = 2.4e9, temperature = 25.0, pressure = 10
     """
     # Convert temperature to Kelvin
     temperature += 273.15
+    temperature = TEMPERATURE
     
     # Convert pressure to Pascal
     pressure *= 100
@@ -49,6 +50,6 @@ def atmospheric_attenuation(frequency = 2.4e9, temperature = 25.0, pressure = 10
     alpha_wet = (3.01 * rho_v * (frequency / 1e9)**2) / (temperature + 273.0)
     
     # Calculate total attenuation
-    attenuation = alpha_dry + alpha_wet
+    attenuation = (alpha_dry + alpha_wet)
     
     return attenuation
